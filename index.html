@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C Programming — Lesson Index</title>
+<style>
+  :root {
+    --ink: #1f2933;
+    --muted: #5b6770;
+    --paper: #fbfaf7;
+    --rule: #e3ddd2;
+    --accent: #0f766e;
+    --accent-soft: #e6f2f0;
+    --code-bg: #f4f1ea;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 16px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--paper);
+    line-height: 1.6;
+    margin: 0 auto;
+    padding: 2.5rem clamp(1rem, 5vw, 4rem);
+    max-width: 820px;
+  }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.9rem; margin: 0; line-height: 1.2; letter-spacing: -0.015em; }
+  .lede { font-size: 1.1rem; color: var(--muted); margin: 0.8rem 0 0; }
+  h2 { font-size: 1.3rem; margin: 2.4rem 0 0.6rem; }
+  .lesson-list { list-style: none; padding: 0; margin: 1rem 0 2rem; }
+  .lesson-list li {
+    padding: 0.9rem 1.1rem;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    margin-bottom: 0.6rem;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .lesson-list li:hover {
+    border-color: var(--accent);
+    box-shadow: 0 2px 8px rgba(15, 118, 110, 0.08);
+  }
+  .lesson-list a {
+    text-decoration: none;
+    color: var(--ink);
+    display: block;
+  }
+  .lesson-list .num {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .lesson-list .title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0.15rem 0;
+  }
+  .lesson-list .desc {
+    font-size: 0.88rem;
+    color: var(--muted);
+    margin: 0;
+  }
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--rule);
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="meta">C Programming · A Little Book of C</div>
+<header>
+  <h1>📚 Lesson Index</h1>
+  <p class="lede">All lessons in order — each one self-contained, ~15 minutes.</p>
+</header>
+
+<h2>Lessons</h2>
+
+<ol class="lesson-list">
+  <li>
+    <a href="lessons/0001-pointer-vs-array-storage.html">
+      <div class="num">Lesson 1</div>
+      <div class="title">Where Does the Memory Come From?</div>
+      <p class="desc">Storage must exist AND be big enough. The One Principle behind bare-pointer <code>scanf</code> and undersized <code>strcat</code> bugs.</p>
+    </a>
+  </li>
+  <li>
+    <a href="lessons/0002-strcat-unrolled.html">
+      <div class="num">Lesson 2</div>
+      <div class="title">strcat, Unrolled</div>
+      <p class="desc">The three-act structure (find end → lockstep copy → re-seal) and the two-pointer copy idiom <code>*p++ = *q++</code>.</p>
+    </a>
+  </li>
+  <li>
+    <a href="lessons/0003-const-qualifier-matrix.html">
+      <div class="num">Lesson 3</div>
+      <div class="title">The const Matrix</div>
+      <p class="desc">The three const positions around a pointer. <code>const char *p</code>, <code>char * const p</code>, <code>const char * const p</code>. The two-question shortcut.</p>
+    </a>
+  </li>
+  <li>
+    <a href="lessons/0004-postfix-dereference-idiom.html">
+      <div class="num">Lesson 4</div>
+      <div class="title">Unpacking *p++ = *q++</div>
+      <p class="desc">Postfix <code>++</code> binds tighter than <code>*</code>. The 7-step unroll. Six forms at a glance. The classic one-liner strcpy trick.</p>
+    </a>
+  </li>
+  <li>
+    <a href="lessons/0005-hand-rolled-mystrcpy.html">
+      <div class="num">Lesson 5</div>
+      <div class="title">Hand-Rolled mystrcpy</div>
+      <p class="desc">Four versions of mystrcpy: index form, expanded pointer, compact pointer, one-liner. The only difference from strcat: no Act 1.</p>
+    </a>
+  </li>
+  <li>
+    <a href="lessons/0006-malloc-free-and-the-heap.html">
+      <div class="num">Lesson 6</div>
+      <div class="title">malloc, free, and the Heap</div>
+      <p class="desc">Heap memory, malloc/calloc/realloc/free. The three heap sins. Stack vs heap decision. Hands-on: build mystrdup.</p>
+    </a>
+  </li>
+  <li>
+    <a href="lessons/0007-memory-errors-and-defensive-programming.html">
+      <div class="num">Lesson 7</div>
+      <div class="title">Memory Errors and the Defensive Programmer</div>
+      <p class="desc">The four heap sins in depth: leak, dangling pointer, double-free, use-after-free. Ownership rule. Valgrind and ASan. Hands-on: be a memory detective.</p>
+    </a>
+  </li>
+</ol>
+
+<footer>
+  <a href="MISSION.md">Mission</a> ·
+  <a href="RESOURCES.md">Resources</a> ·
+  <a href="reference/">Reference sheets</a>
+</footer>
+
+</body>
+</html>

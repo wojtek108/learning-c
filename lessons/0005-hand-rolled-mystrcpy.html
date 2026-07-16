@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 5 — Hand-Rolled mystrcpy</title>
+<style>
+  :root {
+    --ink: #1f2933;
+    --muted: #5b6770;
+    --paper: #fbfaf7;
+    --rule: #e3ddd2;
+    --accent: #0f766e;
+    --accent-soft: #e6f2f0;
+    --danger: #9b1c1c;
+    --danger-soft: #fbe8e8;
+    --ok: #1f6f3f;
+    --ok-soft: #e3f3ea;
+    --code-bg: #f4f1ea;
+    --warn: #9a6700;
+    --warn-soft: #fdf3df;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 16px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--paper);
+    line-height: 1.6;
+    margin: 0 auto;
+    padding: 2.5rem clamp(1rem, 5vw, 4rem);
+    max-width: 820px;
+  }
+  .meta { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.3rem; }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.9rem; margin: 0; line-height: 1.2; letter-spacing: -0.015em; }
+  .lede { font-size: 1.1rem; color: var(--muted); margin: 0.8rem 0 0; }
+  h2 { font-size: 1.3rem; margin: 2.4rem 0 0.6rem; }
+  h3 { font-size: 1.05rem; margin: 1.6rem 0 0.4rem; color: var(--accent); }
+  p { margin: 0.7rem 0; }
+  code, pre {
+    font-family: "JetBrains Mono", "SF Mono", "Fira Code", Consolas, Menlo, monospace;
+    font-size: 0.86rem;
+  }
+  code { background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 3px; }
+  pre {
+    background: #263238;
+    color: #eceff1;
+    padding: 0.95rem 1.1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    line-height: 1.5;
+    font-size: 0.84rem;
+  }
+  pre code { background: none; padding: 0; color: inherit; }
+  pre .c { color: #8aa0a6; font-style: italic; }
+  pre .bad { color: #ff8a80; }
+  pre .good { color: #b9f6ca; }
+  pre .k { color: #ffccbc; }
+  pre .s { color: #fff59d; }
+  .callout {
+    padding: 0.95rem 1.15rem;
+    border-radius: 6px;
+    margin: 1.2rem 0;
+    border-left: 4px solid;
+  }
+  .callout .h { font-weight: 700; display: block; margin-bottom: 0.2rem; }
+  .principle { background: var(--accent-soft); border-color: var(--accent); }
+  .danger { background: var(--danger-soft); border-color: var(--danger); }
+  .warn { background: var(--warn-soft); border-color: var(--warn); }
+  .ok { background: var(--ok-soft); border-color: var(--ok); }
+  .quiz {
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 1.2rem 1.3rem;
+    margin: 1.5rem 0;
+  }
+  .quiz h3 { color: var(--ink); margin-top: 0; }
+  details {
+    margin-top: 0.7rem;
+    padding: 0.7rem 0.95rem;
+    background: var(--ok-soft);
+    border-radius: 6px;
+    border-left: 3px solid var(--ok);
+  }
+  details summary { cursor: pointer; font-weight: 600; color: var(--ok); }
+  details[open] summary { margin-bottom: 0.5rem; }
+  .task {
+    background: linear-gradient(135deg, #f0fdfa, #ecfeff);
+    border: 1px solid #99f6e4;
+    border-radius: 10px;
+    padding: 1.3rem 1.4rem;
+    margin: 1.8rem 0;
+  }
+  .task h3 { color: var(--accent); margin-top: 0; }
+  ol.steps { padding-left: 1.3rem; }
+  ol.steps li { margin: 0.45rem 0; }
+  .ask {
+    background: var(--accent);
+    color: #fff;
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    margin-top: 2rem;
+  }
+  .ask code { background: rgba(0,0,0,0.15); color: #fff; }
+  .ask strong { display: block; margin-bottom: 0.3rem; }
+  .cite { font-size: 0.85rem; color: var(--muted); border-top: 1px solid var(--rule); margin-top: 2.5rem; padding-top: 1rem; }
+  a { color: var(--accent); }
+  .nav { font-size: 0.85rem; margin-bottom: 1.5rem; }
+  .nav a { color: var(--muted); text-decoration: none; }
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+    margin: 1.2rem 0;
+  }
+  .compare > div {
+    background: var(--code-bg);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 0.8rem 0.9rem;
+  }
+  .compare > div:first-child {
+    border-top: 3px solid var(--muted);
+  }
+  .compare > div:last-child {
+    border-top: 3px solid var(--ok);
+  }
+  .compare .label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+  .compare pre { margin: 0; }
+  @media (max-width: 560px) { .compare { grid-template-columns: 1fr; } }
+  @media print {
+    body { padding: 1rem; max-width: 100%; }
+    pre { white-space: pre-wrap; word-break: break-word; }
+    details > *:not(summary) { display: block !important; }
+    .ask, .task { background: none; border: 1px solid var(--ink); color: var(--ink); }
+  }
+</style>
+</head>
+<body>
+
+<div class="nav">📚 <a href="../index.html">All Lessons</a> · ↩ <a href="../lessons/0004-postfix-dereference-idiom.html">Lesson 4</a> · <a href="../reference/c-strings-and-memory.html">Reference</a></div>
+
+<div class="meta">Lesson 5 · ~12 minutes · ties to mission: <em>build a small correct C program end-to-end</em></div>
+<header>
+  <h1>Hand-Rolled <code>mystrcpy</code></h1>
+  <p class="lede>You've built <code>mystrcat</code>. Now build <code>mystrcpy</code> — simpler, and the exercise that proves the two-pointer idiom is truly yours.</p>
+</header>
+
+<h2>What <code>strcpy</code> does</h2>
+
+<pre><code><span class="k">char</span> dest[20];
+<span class="good">strcpy(dest, <span class="s">"Hello"</span>);</span>
+printf(<span class="s">"%s\n"</span>, dest);   <span class="c">// → Hello</code></pre>
+
+<p><code>strcpy(dst, src)</code> copies every character from <code>src</code> into <code>dst</code>, including the terminating <code>'\0'</code>. It overwrites whatever was in <code>dst</code> before.</p>
+
+<div class="callout principle">
+  <span class="h">The difference from <code>strcat</code></span>
+  <code>strcat</code> appends — it must <em>find the end</em> of <code>dest</code> first, then copy. <code>strcpy</code> just copies from the <em>beginning</em> — no search needed. That's <strong>one less act</strong>, which makes it the cleaner place to practice the two-pointer idiom.
+</div>
+
+<h2>Three ways to write it</h2>
+
+<p>You like writing things multiple ways (your three <code>mystrlen</code> implementations proved that). Here are three ways to do <code>mystrcpy</code>, each teaching something different.</p>
+
+<h3>Version 1 — index form (the one you already know)</h3>
+
+<pre><code><span class="k">void</span> mystrcpy_v1(<span class="k">char</span> *dst, <span class="k">const char</span> *src) {
+    <span class="k">int</span> i = 0;
+    <span class="k">while</span> (src[i] != <span class="s">'\0'</span>) {
+        dst[i] = src[i];
+        i++;
+    }
+    dst[i] = <span class="s">'\0'</span>;       <span class="c">// copy the terminator</span>
+}</code></pre>
+
+<p>Simple, readable. You've written loops exactly like this before. The <code>'\0'</code> is copied <em>after</em> the loop — the loop stops <em>at</em> the terminator, and the explicit line seals the copy.</p>
+
+<h3>Version 2 — pointer form (expanded, from lesson 2)</h3>
+
+<pre><code><span class="k">void</span> mystrcpy_v2(<span class="k">char</span> *dst, <span class="k">const char</span> *src) {
+    <span class="k">char</span> *p = dst;
+    <span class="k">const char</span> *q = src;
+
+    <span class="k">while</span> (*q != <span class="s">'\0'</span>) {
+        *p = *q;
+        p++;
+        q++;
+    }
+    *p = <span class="s">'\0'</span>;           <span class="c">// seal</span>
+}</code></pre>
+
+<p>Same as <code>mystrcat</code>'s Act 2, but starting from position 0 instead of the end. No Act 1 needed — the write pointer starts at the beginning. Same three-line lockstep you've been practicing.</p>
+
+<h3>Version 3 — compact form (from lesson 4)</h3>
+
+<pre><code><span class="k">void</span> mystrcpy_v3(<span class="k">char</span> *dst, <span class="k">const char</span> *src) {
+    <span class="k">while</span> (*src != <span class="s">'\0'</span>) {
+        <span class="good">*dst++ = *src++;</span>
+    }
+    <span class="good">*dst = <span class="s">'\0'</span>;</span>
+}</code></pre>
+
+<p>The two-pointer lockstep compressed into one line per iteration. This is the form you'll see in real C codebases. After lesson 4, you know exactly what <code>*dst++ = *src++</code> expands to.</p>
+
+<h3>Bonus — version 3b (the clever one-liner)</h3>
+
+<pre><code><span class="k">void</span> mystrcpy_v3b(<span class="k">char</span> *dst, <span class="k">const char</span> *src) {
+    <span class="good">while</span> (*dst++ = *src++)
+        <span class="good">;</span>   <span class="c">// empty body — all the work is in the condition</span>
+}</code></pre>
+
+<p>This is the classic C trick. The loop condition does <em>everything</em>: copy a character, advance both pointers, test if the copied character was <code>'\0'</code> (i.e. zero). When <code>'\0'</code> is copied, the condition is false and the loop exits — <em>after</em> writing the terminator into <code>dst</code>. No separate seal line needed.</p>
+
+<div class="callout warn">
+  <span class="h">Beautiful but evil</span>
+  This works. It's also the #1 reason people call C "unreadable." The entire copy happens inside a <code>while</code> condition. A newcomer sees it and thinks "that's an empty loop — it does nothing." Use version 3 in your own code until the one-liner reads as naturally as English. For now, <strong>know it exists, don't write it.</strong>
+</div>
+
+<h2>See them side by side</h2>
+
+<div class="compare">
+  <div>
+    <div class="label">index form</div>
+<pre><code><span class="k">while</span> (src[i] != <span class="s">'\0'</span>) {
+    dst[i] = src[i];
+    i++;
+}
+dst[i] = <span class="s">'\0'</span>;</code></pre>
+  </div>
+  <div>
+    <div class="label">compact pointer form</div>
+<pre><code><span class="k">while</span> (*src != <span class="s">'\0'</span>) {
+    *dst++ = *src++;
+}
+*dst = <span class="s">'\0'</span>;</code></pre>
+  </div>
+</div>
+
+<p>Every index <code>i</code> is a pointer offset. <code>src[i]</code> ≡ <code>*(src + i)</code>. The pointer form just keeps the pointer moving instead of recalculating <code>src + i</code> each time. Same work, less arithmetic.</p>
+
+<h2>The safety checklist (lesson 1, again)</h2>
+
+<p>Before any <code>strcpy</code> — hand-rolled or library — the One Principle applies:</p>
+
+<ol>
+  <li><strong>Does <code>dst</code> have real storage?</strong> Must be an array or <code>malloc</code>'d memory.</li>
+  <li><strong>Big enough?</strong> <code>strlen(src) + 1</code> bytes minimum. The +1 is for the <code>'\0'</code>.</li>
+</ol>
+
+<pre><code><span class="k">char</span> dest[20];
+mystrcpy(dest, <span class="s">"Hello"</span>);   <span class="good">// strlen("Hello") + 1 = 6 ≤ 20 ✓</span>
+
+<span class="k">char</span> small[4];
+mystrcpy(small, <span class="s">"Hello"</span>);  <span class="bad">// 6 > 4 → UB, buffer overflow</span></code></pre>
+
+<h2>Check yourself</h2>
+
+<div class="quiz">
+  <h3>① Why doesn't <code>mystrcpy</code> need an "Act 1" (find the end)?</h3>
+  <details><summary>Show answer</summary>
+  Because <code>strcpy</code> copies <em>from the beginning</em> of <code>dst</code>, overwriting everything. <code>strcat</code> needs to find the end because it's <em>appending</em> — it must know where the existing data stops. <code>strcpy</code> starts at position 0 unconditionally. That's the only structural difference.
+  </details>
+</div>
+
+<div class="quiz">
+  <h3>② In version 3b (<code>while (*dst++ = *src++);</code>), when exactly is the <code>'\0'</code> copied?</h3>
+  <details><summary>Show answer</summary>
+  On the last iteration — when <code>src</code> points at <code>'\0'</code>. The expression <code>*dst++ = *src++</code> copies that <code>'\0'</code> into <code>dst</code>, advances both pointers, and yields <code>'\0'</code> (which is <code>0</code> = false). The <code>while</code> condition is false → loop exits. The terminator has <em>already been written</em> before the test. That's why no separate <code>*dst = '\0';</code> is needed.
+  </details>
+</div>
+
+<div class="quiz">
+  <h3>③ What's the return type of the real <code>strcpy</code>?</h3>
+  <details><summary>Show answer</summary>
+  It returns <code>char *</code> — a pointer to the <em>destination</em>. This lets you chain calls: <code>strcpy(buf, strcpy(buf2, "hello"));</code> (copy "hello" into <code>buf2</code>, then copy <code>buf2</code> into <code>buf</code>). Most people don't chain it, but the return value is part of the interface. Check <a href="https://en.cppreference.com/w/c/string/byte/strcpy">cppreference</a>.
+  </details>
+</div>
+
+<div class="quiz">
+  <h3>④ Can <code>strcpy</code>'s source and destination overlap?</h3>
+  <details><summary>Show answer</summary>
+  <strong>No — undefined behavior.</strong> Example: <code>strcpy(buf, buf + 2);</code> — the source starts inside the destination. As <code>strcpy</code> writes, it may overwrite source characters it hasn't read yet. The safe version for overlapping regions is <a href="https://en.cppreference.com/w/c/string/byte/memmove"><code>memmove</code></a>, which handles overlaps correctly.
+  </details>
+</div>
+
+<div class="task">
+  <h3>🛠️ Hands-on — write all four versions and test them</h3>
+  <p>Create a single file with all four <code>mystrcpy</code> implementations. Call each one and verify identical output:</p>
+  <ol class="steps">
+    <li>Write <code>mystrcpy_v1</code> (index), <code>v2</code> (expanded pointer), <code>v3</code> (compact pointer), and <code>v3b</code> (one-liner).</li>
+    <li>In <code>main</code>, declare a <code>char dest[20]</code> for each call. Copy <code>"Hello, world!"</code> into each.</li>
+    <li>Print all four results. They should be identical: <code>Hello, world!</code></li>
+    <li><strong>Edge case test:</strong> copy an empty string <code>""</code> into each. Does each version handle it correctly? (It should — the loop body never executes, and only the terminator is written.)</li>
+    <li><strong>Compare line counts:</strong> version 1 is ~6 lines, version 3 is ~4 lines, version 3b is ~2 lines. Same work, different verbosity.</li>
+  </ol>
+</div>
+
+<div class="callout ok">
+  <span class="h">What you can now do</span>
+  Write <code>strcpy</code> from scratch in four forms — index, expanded pointer, compact pointer, and the one-liner. You see that every string-copy function is the same two-pointer lockstep underneath. And you know the safety rule: <code>strlen(src) + 1</code> bytes must fit in <code>dst</code>.
+</div>
+
+<div class="ask">
+  <strong>Questions? Ask your agent.</strong>
+  Anything murky — "why does the real <code>strcpy</code> return <code>char*</code>?", "when would I use <code>memmove</code> instead?", "can I write <code>mystrcpy</code> with <code>strlen</code> instead of a loop?" — type it and we'll dig in. After this, you're ready for <code>malloc</code>.
+</div>
+
+<div class="cite">
+  <strong>Sources &amp; further reading</strong><br>
+  · <a href="https://en.cppreference.com/w/c/string/byte/strcpy">cppreference: <code>strcpy</code></a> — the real signature, return value, and overlap restriction.<br>
+  · <a href="https://en.cppreference.com/w/c/string/byte/memmove">cppreference: <code>memmove</code></a> — the safe version for overlapping copies.<br>
+  · <a href="https://beej.us/guide/bgc/">Beej's Guide to C Programming</a> — strings and pointers.<br>
+  · <a href="../reference/c-strings-and-memory.html">Companion cheat sheet</a> · <a href="../lessons/0004-postfix-dereference-idiom.html">Lesson 4: *p++ = *q++</a>
+</div>
+
+</body>
+</html>

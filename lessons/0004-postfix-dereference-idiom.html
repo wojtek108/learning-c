@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 4 — Unpacking *p++ = *q++</title>
+<style>
+  :root {
+    --ink: #1f2933;
+    --muted: #5b6770;
+    --paper: #fbfaf7;
+    --rule: #e3ddd2;
+    --accent: #0f766e;
+    --accent-soft: #e6f2f0;
+    --danger: #9b1c1c;
+    --danger-soft: #fbe8e8;
+    --ok: #1f6f3f;
+    --ok-soft: #e3f3ea;
+    --code-bg: #f4f1ea;
+    --warn: #9a6700;
+    --warn-soft: #fdf3df;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 16px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--paper);
+    line-height: 1.6;
+    margin: 0 auto;
+    padding: 2.5rem clamp(1rem, 5vw, 4rem);
+    max-width: 820px;
+  }
+  .meta { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.3rem; }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.9rem; margin: 0; line-height: 1.2; letter-spacing: -0.015em; }
+  .lede { font-size: 1.1rem; color: var(--muted); margin: 0.8rem 0 0; }
+  h2 { font-size: 1.3rem; margin: 2.4rem 0 0.6rem; }
+  h3 { font-size: 1.05rem; margin: 1.6rem 0 0.4rem; color: var(--accent); }
+  p { margin: 0.7rem 0; }
+  code, pre {
+    font-family: "JetBrains Mono", "SF Mono", "Fira Code", Consolas, Menlo, monospace;
+    font-size: 0.86rem;
+  }
+  code { background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 3px; }
+  pre {
+    background: #263238;
+    color: #eceff1;
+    padding: 0.95rem 1.1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    line-height: 1.5;
+    font-size: 0.84rem;
+  }
+  pre code { background: none; padding: 0; color: inherit; }
+  pre .c { color: #8aa0a6; font-style: italic; }
+  pre .bad { color: #ff8a80; }
+  pre .good { color: #b9f6ca; }
+  pre .k { color: #ffccbc; }
+  pre .s { color: #fff59d; }
+  pre .step { color: #80cbc4; }
+  .callout {
+    padding: 0.95rem 1.15rem;
+    border-radius: 6px;
+    margin: 1.2rem 0;
+    border-left: 4px solid;
+  }
+  .callout .h { font-weight: 700; display: block; margin-bottom: 0.2rem; }
+  .principle { background: var(--accent-soft); border-color: var(--accent); }
+  .danger { background: var(--danger-soft); border-color: var(--danger); }
+  .warn { background: var(--warn-soft); border-color: var(--warn); }
+  .ok { background: var(--ok-soft); border-color: var(--ok); }
+  .quiz {
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 1.2rem 1.3rem;
+    margin: 1.5rem 0;
+  }
+  .quiz h3 { color: var(--ink); margin-top: 0; }
+  details {
+    margin-top: 0.7rem;
+    padding: 0.7rem 0.95rem;
+    background: var(--ok-soft);
+    border-radius: 6px;
+    border-left: 3px solid var(--ok);
+  }
+  details summary { cursor: pointer; font-weight: 600; color: var(--ok); }
+  details[open] summary { margin-bottom: 0.5rem; }
+  .task {
+    background: linear-gradient(135deg, #f0fdfa, #ecfeff);
+    border: 1px solid #99f6e4;
+    border-radius: 10px;
+    padding: 1.3rem 1.4rem;
+    margin: 1.8rem 0;
+  }
+  .task h3 { color: var(--accent); margin-top: 0; }
+  ol.steps { padding-left: 1.3rem; }
+  ol.steps li { margin: 0.45rem 0; }
+  .ask {
+    background: var(--accent);
+    color: #fff;
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    margin-top: 2rem;
+  }
+  .ask code { background: rgba(0,0,0,0.15); color: #fff; }
+  .ask strong { display: block; margin-bottom: 0.3rem; }
+  .cite { font-size: 0.85rem; color: var(--muted); border-top: 1px solid var(--rule); margin-top: 2.5rem; padding-top: 1rem; }
+  a { color: var(--accent); }
+  .nav { font-size: 0.85rem; margin-bottom: 1.5rem; }
+  .nav a { color: var(--muted); text-decoration: none; }
+  .unroll {
+    background: var(--code-bg);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 1rem 1.1rem;
+    margin: 1rem 0;
+  }
+  .unroll .arrow { color: var(--accent); font-size: 1.1rem; display: block; text-align: center; margin: 0.5rem 0; }
+  .unroll pre { margin: 0.5rem 0 0; }
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.88rem;
+  }
+  .table th, .table td {
+    text-align: left;
+    padding: 0.5rem 0.6rem;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  .table th { background: var(--accent-soft); font-weight: 600; font-size: 0.8rem; }
+  @media print {
+    body { padding: 1rem; max-width: 100%; }
+    pre { white-space: pre-wrap; word-break: break-word; }
+    details > *:not(summary) { display: block !important; }
+    .ask, .task, .unroll { background: none; border: 1px solid var(--ink); color: var(--ink); }
+  }
+</style>
+</head>
+<body>
+
+<div class="nav">📚 <a href="../index.html">All Lessons</a> · ↩ <a href="../lessons/0003-const-qualifier-matrix.html">Lesson 3</a> · <a href="../reference/c-strings-and-memory.html">Reference</a></div>
+
+<div class="meta">Lesson 4 · ~15 minutes · ties to mission: <em>read and write C confidently</em></div>
+<header>
+  <h1>Unpacking <code>*p++ = *q++</code></h1>
+  <p class="lede">You saw this compressed idiom in lesson 2 and were told to keep writing the three-line version for now. Now it's time to own it — by seeing exactly what the compiler does.</p>
+</header>
+
+<h2>The three-line version you already know</h2>
+
+<pre><code><span class="step">*p = *q;</span>     <span class="c">// copy: read q's target, write to p's target</span>
+<span class="step">p++;</span>         <span class="c">// advance the write head</span>
+<span class="step">q++;</span>         <span class="c">// advance the read head</span></pre>
+
+<p>This is the two-pointer lockstep from lesson 2 — clear, explicit, nothing hidden. Every grown-up C programmer compresses it to one line. Let's see why that works.</p>
+
+<h2>The one operator you need: postfix <code>++</code></h2>
+
+<p>Postfix <code>++</code> does <strong>two things</strong>, and the order is the whole lesson:</p>
+
+<table class="table">
+  <thead><tr><th>Step</th><th>What happens</th></tr></thead>
+  <tbody>
+    <tr><td><strong>1. Yield</strong></td><td>The expression produces the <em>current</em> value (before incrementing).</td></tr>
+    <tr><td><strong>2. Side effect</strong></td><td>The variable is incremented <em>after</em> the value is yielded.</td></tr>
+  </tbody>
+</table>
+
+<p>So <code>p++</code> means: "give me <code>p</code>'s current value, then add 1 to <code>p</code>." It's a post-increment — <em>use, then change</em>.</p>
+
+<div class="callout warn">
+  <span class="h">Contrast: prefix <code>++p</code></span>
+  Prefix <code>++p</code> increments first, then yields the new value. <em>Change, then use.</em> We won't need it in this lesson, but knowing it exists is important — it's the other side of the coin.
+</div>
+
+<h2>Now layer in the <code>*</code> (dereference) operator</h2>
+
+<p>You know <code>*p</code> means "the thing <code>p</code> points at." The question is: in <code>*p++</code>, which binds tighter — <code>*</code> or <code>++</code>?</p>
+
+<table class="table">
+  <thead><tr><th>Expression</th><th>Operator precedence</th><th>What it means</th></tr></thead>
+  <tbody>
+    <tr><td><code>*p++</code></td><td><code>++</code> (postfix) binds tighter than <code>*</code></td><td><code>*(p++)</code> — dereference the <em>old</em> value of <code>p</code>, then increment <code>p</code></td></tr>
+    <tr><td><code>(*p)++</code></td><td>Explicit grouping</td><td>Dereference <code>p</code>, then increment the <em>value at that address</em></td></tr>
+    <tr><td><code>*++p</code></td><td><code>++</code> (prefix) binds tighter than <code>*</code></td><td>Increment <code>p</code> first, then dereference the <em>new</em> address</td></tr>
+  </tbody>
+</table>
+
+<div class="callout principle">
+  <span class="h">The key insight</span>
+  <code>*p++</code> reads from <code>p</code>'s <em>current</em> target, <strong>then</strong> moves <code>p</code> forward. The data you get is from the old position. The pointer has already moved on by the time the expression is done. That's exactly the lockstep move — in a single expression.
+</div>
+
+<h2>Unroll the full line: <code>*p++ = *q++</code></h2>
+
+<p>The assignment <code>=</code> evaluates right-to-left. The compiler sees:</p>
+
+<div class="unroll">
+<pre><code><span class="good">*p++ = *q++;</span></pre>
+  <div class="arrow">▼ step-by-step</div>
+<pre><code><span class="c">// Right side: *q++</span>
+<span class="step">1.</span> Yield current value of q  →  say, address 0x1000
+<span class="step">2.</span> Dereference that address  →  say, character 'W'
+<span class="step">3.</span> Side effect: q becomes 0x1001
+
+<span class="c">// Left side: *p++</span>
+<span class="step">4.</span> Yield current value of p  →  say, address 0x2005
+<span class="step">5.</span> Dereference that address  →  slot at 0x2005
+<span class="step">6.</span> Side effect: p becomes 0x2006
+
+<span class="c">// Assignment</span>
+<span class="step">7.</span> Write the right-side result ('W') into the left-side slot (0x2005)</code></pre>
+</div>
+
+<p>Seven steps, one line. And it produces <strong>exactly</strong> the same result as the three-line version:</p>
+
+<pre><code>*p = *q;     <span class="c">// copy 'W' from 0x1000 to 0x2005</span>
+p++;         <span class="c">// p → 0x2006</span>
+q++;         <span class="c">// q → 0x1001</span></pre>
+
+<h2>The memory diagram — same as lesson 2</h2>
+
+<p>Nothing has changed about what happens in memory. <code>*p++ = *q++</code> is just a shorthand for the lockstep copy you already understand. Here's one iteration:</p>
+
+<pre><code>dest:   H  e  l  l  o <span class="s">'\0'</span>  ?   ?   ?  ...
+                     ↑
+                     p
+
+str2:   W  o  r  l  d  '\0'
+        ↑
+        q</code></pre>
+
+<pre><code><span class="c">After one iteration of *p++ = *q++:</span>
+
+dest:   H  e  l  l  o  W   ?   ?  ...
+                          ↑
+                          p  (advanced)
+
+str2:   W  o  r  l  d  '\0'
+            ↑
+            q  (advanced)</code></pre>
+
+<p>Same bytes moved, same pointers advanced. Just fewer keystrokes.</p>
+
+<h2>The six forms — at a glance</h2>
+
+<p>Because combining <code>*</code> and <code>++</code> creates confusion, here's the complete set. Don't memorize this — derive each one from the rule "postfix <code>++</code> binds tighter than <code>*</code>." The table is for later reference.</p>
+
+<table class="table">
+  <thead><tr><th>Expression</th><th>Expanded</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>*p++</code></td><td><code>*(p++)</code></td><td>Read value at <code>p</code>, then advance <code>p</code>. <span class="good">← this is the one you use</span></td></tr>
+    <tr><td><code>*++p</code></td><td><code>*(++p)</code></td><td>Advance <code>p</code> first, then read new value.</td></tr>
+    <tr><td><code>(*p)++</code></td><td>—</td><td>Read value at <code>p</code>, increment the <em>value</em> (not the pointer).</td></tr>
+    <tr><td><code>*--p</code></td><td><code>*(--p)</code></td><td>Step <code>p</code> back, then read new value. <span class="good">← reverse copy</span></td></tr>
+    <tr><td><code>*p--</code></td><td><code>*(p--)</code></td><td>Read value at <code>p</code>, then step <code>p</code> back.</td></tr>
+    <tr><td><code>++*p</code></td><td><code>++(*p)</code></td><td>Increment the <em>value</em> at <code>p</code>, yield new value.</td></tr>
+  </tbody>
+</table>
+
+<h2>When to use the compact form</h2>
+
+<div class="callout ok">
+  <span class="h">Your progression</span>
+  <strong>Phase 1</strong> (where you were): write <code>*p = *q; p++; q++;</code> — three lines, explicit, no ambiguity.<br>
+  <strong>Phase 2</strong> (where you are now): understand <code>*p++ = *q++</code> because you've seen it unrolled. Use it when reading other people's code.<br>
+  <strong>Phase 3</strong> (where you're heading): start using <code>*p++ = *q++</code> in your <em>own</em> code, when the three-line version feels tedious. You'll know you're ready when you can read <code>*p++ = *q++</code> and instantly see "copy, advance both" without mentally unrolling it.
+</div>
+
+<h2>Check yourself</h2>
+
+<div class="quiz">
+  <h3>① What does <code>*p++</code> evaluate to?</h3>
+  <details><summary>Show answer</summary>
+  The value at <code>p</code>'s <em>current</em> address (before the increment). It dereferences the old value, then moves <code>p</code> forward as a side effect. So <code>*p++</code> yields a <code>char</code> (or whatever <code>p</code> points at), not a pointer.
+  </details>
+</div>
+
+<div class="quiz">
+  <h3>② What's the difference between <code>*p++</code> and <code>(*p)++</code>?</h3>
+  <details><summary>Show answer</summary>
+  <code>*p++</code> (i.e. <code>*(p++)</code>) advances the <em>pointer</em>. <code>(*p)++</code> advances the <em>value</em> the pointer targets. <br><br>
+  Example: if <code>p</code> points at an <code>int</code> holding <code>42</code>: <code>*p++</code> yields <code>42</code> and moves <code>p</code> to the next <code>int</code>. <code>(*p)++</code> yields <code>42</code> and changes the value at the current address to <code>43</code>, without moving <code>p</code>.
+  </details>
+</div>
+
+<div class="quiz">
+  <h3>③ Rewrite <code>*p++ = *q++</code> using prefix increment instead.</h3>
+  <details><summary>Show answer</summary>
+  You'd need: <code>*p = *q; ++p; ++q;</code> — you can't directly replace <code>*p++</code> with <code>*++p</code> because the semantics would change (prefix increments first, so you'd skip the first element). The compact <code>*p++ = *q++</code> works precisely because <em>both</em> are postfix — they yield the old position, then advance.
+  </details>
+</div>
+
+<div class="quiz">
+  <h3>④ In <code>while (*p++ = *q++);</code> — what's the loop condition actually testing?</h3>
+  <details><summary>Show answer</summary>
+  The value assigned — the character copied from <code>*q</code>. The loop continues while that character is non-zero (i.e. not <code>'\0'</code>). It stops when <code>*q</code> yields <code>'\0'</code> (which is <code>0</code>), which also copies that <code>'\0'</code> into <code>*p</code> before terminating. This is actually the classic one-liner <code>strcpy</code> implementation — it copies the terminator <em>and</em> stops, all in the condition. Elegant, but don't write this in production — it's a readability trap.
+  </details>
+</div>
+
+<div class="task">
+  <h3>🛠️ Hands-on — rewrite your <code>mystrcat</code> using the compact form</h3>
+  <p>Take your working <code>mystrcat</code> function from the lesson 2 hands-on and create a second version:</p>
+  <ol class="steps">
+    <li>Copy the function. Name it <code>mystrcat_compact</code>.</li>
+    <li>Replace the three-line lockstep in Act 2 with <code>*p++ = *q++;</code></li>
+    <li>Keep Acts 1 and 3 in expanded form (don't compress those yet — one thing at a time).</li>
+    <li>Compile, run, and verify it produces the same output.</li>
+    <li><strong>Once it works:</strong> try compressing Act 1 into <code>while (*p) p++;</code>. Does it still work? (Yes — <code>*p</code> is non-zero until <code>'\0'</code>, so this skips the explicit <code>!= '\0'</code> test.)</li>
+    <li><strong>Compare:</strong> read both versions side by side. Which is easier to understand at a glance? Both are correct — the question is what your eyes can parse without effort.</li>
+  </ol>
+</div>
+
+<div class="callout ok">
+  <span class="h">What you can now do</span>
+  Read <code>*p++ = *q++</code> and instantly know it means "copy, advance both." You can mentally unroll it to the three-line version. You know postfix <code>++</code> binds tighter than <code>*</code>, and you know the difference between <code>*p++</code> and <code>(*p)++</code>. You've also seen the classic one-liner <code>strcpy</code> trick — even if you shouldn't write it yourself yet.
+</div>
+
+<div class="ask">
+  <strong>Questions? Ask your agent.</strong>
+  Anything murky — "what about <code>*p++ + *q++</code>?", "is there a performance difference?", "why does the one-liner <code>strcpy</code> work?" — type it and we'll dig in.
+</div>
+
+<div class="cite">
+  <strong>Sources &amp; further reading</strong><br>
+  · <a href="https://en.cppreference.com/w/c/language/operator_precedence">cppreference: C operator precedence</a> — the full table. Postfix <code>++</code> is precedence 2 (second-highest); dereference <code>*</code> is precedence 3.<br>
+  · <a href="https://c-faq.com/expr/prevpost.html">comp.lang.c FAQ — Pre vs Post increment</a><br>
+  · <a href="https://beej.us/guide/bgc/">Beej's Guide to C Programming</a> — pointers chapter, covers the <code>*p++</code> idiom.<br>
+  · <a href="../reference/c-strings-and-memory.html">Companion cheat sheet</a> · <a href="../lessons/0002-strcat-unrolled.html">Lesson 2: strcat unrolled</a> · <a href="../lessons/0003-const-qualifier-matrix.html">Lesson 3: the const matrix</a>
+</div>
+
+</body>
+</html>

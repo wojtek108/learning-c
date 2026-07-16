@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 7 — Memory Errors and Defensive Programming</title>
+<style>
+  :root {
+    --ink: #1f2933;
+    --muted: #5b6770;
+    --paper: #fbfaf7;
+    --rule: #e3ddd2;
+    --accent: #0f766e;
+    --accent-soft: #e6f2f0;
+    --danger: #9b1c1c;
+    --danger-soft: #fbe8e8;
+    --ok: #1f6f3f;
+    --ok-soft: #e3f3ea;
+    --code-bg: #f4f1ea;
+    --warn: #9a6700;
+    --warn-soft: #fdf3df;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 16px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--paper);
+    line-height: 1.6;
+    margin: 0 auto;
+    padding: 2.5rem clamp(1rem, 5vw, 4rem);
+    max-width: 820px;
+  }
+  .meta { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.3rem; }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.9rem; margin: 0; line-height: 1.2; letter-spacing: -0.015em; }
+  .lede { font-size: 1.1rem; color: var(--muted); margin: 0.8rem 0 0; }
+  h2 { font-size: 1.3rem; margin: 2.4rem 0 0.6rem; }
+  h3 { font-size: 1.05rem; margin: 1.6rem 0 0.4rem; color: var(--accent); }
+  p { margin: 0.7rem 0; }
+  code, pre {
+    font-family: "JetBrains Mono", "SF Mono", "Fira Code", Consolas, Menlo, monospace;
+    font-size: 0.86rem;
+  }
+  code { background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 3px; }
+  pre {
+    background: #263238;
+    color: #eceff1;
+    padding: 0.95rem 1.1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    line-height: 1.5;
+    font-size: 0.84rem;
+  }
+  pre code { background: none; padding: 0; color: inherit; }
+  pre .c { color: #8aa0a6; font-style: italic; }
+  pre .bad { color: #ff8a80; }
+  pre .good { color: #b9f6ca; }
+  pre .k { color: #ffccbc; }
+  pre .s { color: #fff59d; }
+  pre .err { color: #ff5252; font-weight: 700; }
+  .callout {
+    padding: 0.95rem 1.15rem;
+    border-radius: 6px;
+    margin: 1.2rem 0;
+    border-left: 4px solid;
+  }
+  .callout .h { font-weight: 700; display: block; margin-bottom: 0.2rem; }
+  .principle { background: var(--accent-soft); border-color: var(--accent); }
+  .danger { background: var(--danger-soft); border-color: var(--danger); }
+  .warn { background: var(--warn-soft); border-color: var(--warn); }
+  .ok { background: var(--ok-soft); border-color: var(--ok); }
+  .quiz {
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 1.2rem 1.3rem;
+    margin: 1.5rem 0;
+  }
+  .quiz h3 { color: var(--ink); margin-top: 0; }
+  details {
+    margin-top: 0.7rem;
+    padding: 0.7rem 0.95rem;
+    background: var(--ok-soft);
+    border-radius: 6px;
+    border-left: 3px solid var(--ok);
+  }
+  details summary { cursor: pointer; font-weight: 600; color: var(--ok); }
+  details[open] summary { margin-bottom: 0.5rem; }
+  .task {
+    background: linear-gradient(135deg, #f0fdfa, #ecfeff);
+    border: 1px solid #99f6e4;
+    border-radius: 10px;
+    padding: 1.3rem 1.4rem;
+    margin: 1.8rem 0;
+  }
+  .task h3 { color: var(--accent); margin-top: 0; }
+  ol.steps { padding-left: 1.3rem; }
+  ol.steps li { margin: 0.45rem 0; }
+  .ask {
+    background: var(--accent);
+    color: #fff;
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    margin-top: 2rem;
+  }
+  .ask code { background: rgba(0,0,0,0.15); color: #fff; }
+  .ask strong { display: block; margin-bottom: 0.3rem; }
+  .cite { font-size: 0.85rem; color: var(--muted); border-top: 1px solid var(--rule); margin-top: 2.5rem; padding-top: 1rem; }
+  a { color: var(--accent); }
+  .nav { font-size: 0.85rem; margin-bottom: 1.5rem; }
+  .nav a { color: var(--muted); text-decoration: none; }
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.88rem;
+  }
+  .table th, .table td {
+    text-align: left;
+    padding: 0.5rem 0.6rem;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  .table th { background: var(--accent-soft); font-weight: 600; font-size: 0.8rem; }
+  .table td code { white-space: nowrap; }
+  .flow {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+  }
+  .flow .box {
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 0.5rem 0.8rem;
+    font-weight: 600;
+    font-family: "JetBrains Mono", "SF Mono", "Fira Code", Consolas, monospace;
+    font-size: 0.82rem;
+  }
+  .flow .arrow { color: var(--muted); font-size: 1.2rem; }
+  .sins {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.6rem;
+    margin: 1.2rem 0;
+  }
+  .sin {
+    background: #fff;
+    border: 1px solid var(--danger-soft);
+    border-top: 4px solid var(--danger);
+    border-radius: 8px;
+    padding: 0.85rem 0.95rem;
+    font-size: 0.88rem;
+  }
+  .sin .name { font-weight: 700; color: var(--danger); display: block; margin-bottom: 0.2rem; }
+  @media (max-width: 560px) { .sins { grid-template-columns: 1fr; } }
+  @media print {
+    body { padding: 1rem; max-width: 100%; }
+    pre { white-space: pre-wrap; word-break: break-word; }
+    details > *:not(summary) { display: block !important; }
+    .ask, .task { background: none; border: 1px solid var(--ink); color: var(--ink); }
+  }
+</style>
+</head>
+<body>
+
+<div class="nav">📚 <a href="../index.html">All Lessons</a> · ↩ <a href="../lessons/0006-malloc-free-and-the-heap.html">Lesson 6</a> · <a href="../reference/c-strings-and-memory.html">Reference</a></div>
+
+<div class="meta">Lesson 7 · ~25 minutes · ties to mission: <em>spot undefined behavior on sight and explain why it's undefined</em></div>
+<header>
+  <h1>Memory Errors and the Defensive Programmer</h1>
+  <p class="lede">Lesson 6 gave you the tools — <code>malloc</code>, <code>free</code>, <code>calloc</code>, <code>realloc</code>. Now meet the bugs they enable. Four errors account for nearly every heap catastrophe in C. Learn to spot them, and you've already separated yourself from casual C users.</p>
+</header>
+
+<h2>The four heap sins</h2>
+
+<p>In lesson 6 we listed them in a callout. Now let's meet each one properly — what it looks like in code, what actually happens at the machine level, and how to prevent it.</p>
+
+<div class="sins">
+  <div class="sin">
+    <span class="name">1. Memory leak</span>
+    You <code>malloc</code>'d but never <code>free</code>'d. The pointer was lost before <code>free</code> — the bytes are unreachable but still claimed.
+  </div>
+  <div class="sin">
+    <span class="name">2. Dangling pointer</span>
+    You <code>free</code>'d, but the pointer still holds the old address. It points to memory that no longer belongs to you.
+  </div>
+  <div class="sin">
+    <span class="name">3. Double free</span>
+    You <code>free</code>'d the same pointer twice. The heap's internal bookkeeping is corrupted.
+  </div>
+  <div class="sin">
+    <span class="name">4. Use-after-free</span>
+    You read or wrote through a dangling pointer. The memory may have been reassigned to another allocation.
+  </div>
+</div>
+
+<h2>Sin 1 — Memory leak</h2>
+
+<pre><code><span class="k">void</span> greet(<span class="k">const char</span> *name) {
+    <span class="k">char</span> *msg = malloc(100);    <span class="c">// 100 bytes on the heap</span>
+    sprintf(msg, <span class="s">"Hello, %s!"</span>, name);
+    printf(<span class="s">"%s\n"</span>, msg);
+    <span class="err">// function returns — msg goes out of scope</span>
+    <span class="err">// the 100 bytes are still claimed, but no pointer reaches them</span>
+}</code></pre>
+
+<p>Every time <code>greet</code> is called, 100 bytes vanish. In a short-lived program, you'd never notice. In a server running for weeks, it slowly bleeds to death. The fix is trivial:</p>
+
+<pre><code>    free(msg);    <span class="c">// give it back before the pointer dies</span></code></pre>
+
+<p><strong>Leak = lost pointer + surviving allocation.</strong> If the pointer is still in scope, it's not a leak yet — just sloppy. A leak happens the instant the last pointer to an allocation is gone without a <code>free</code>.</p>
+
+<div class="callout warn">
+  <span class="h">The overwritten-pointer leak</span>
+  This one is sneakier. The pointer is still <em>in scope</em>, but you overwrote it:
+  <pre><code>char *s = malloc(100);
+s = "literal";     <span class="err">// old malloc'd block is now unreachable — leaked!</span></code></pre>
+  You now have two leaks: the 100 bytes from <code>malloc</code>, and (arguably) the cognitive leak where you forgot where the memory is.
+</div>
+
+<h2>Sin 2 — Dangling pointer</h2>
+
+<pre><code><span class="k">int</span> *p = malloc(<span class="k">sizeof</span>(<span class="k">int</span>));
+*p = 42;
+free(p);
+<span class="err">// p still holds the address — but the heap has reclaimed it</span>
+printf(<span class="s">"%d\n"</span>, *p);    <span class="err">// UB: use-after-free (sin 4)</span></code></pre>
+
+<p>After <code>free(p)</code>, <code>p</code> is <em>not</em> set to <code>NULL</code>. C doesn't do that for you. The pointer still holds the old address. The heap allocator may reuse that address for the <em>next</em> <code>malloc</code> call — so reading through <code>p</code> might silently read someone else's data.</p>
+
+<div class="callout ok">
+  <span class="h">The defensive habit</span>
+  <pre><code>free(p);
+p = NULL;    <span class="c">// always nullify after free</span></code></pre>
+  Now if you accidentally use <code>p</code> later, you get a segfault (from dereferencing <code>NULL</code>) instead of silent corruption. Crashes are <em>good</em> — they tell you where the bug is. Silent corruption is what keeps you up at night.
+</div>
+
+<h2>Sin 3 — Double free</h2>
+
+<pre><code><span class="k">int</span> *p = malloc(<span class="k">sizeof</span>(<span class="k">int</span>));
+free(p);
+free(p);    <span class="err">// double free — UB</span></code></pre>
+
+<p>What actually happens? The heap allocator maintains an internal data structure (think of it as a list of free blocks). When you <code>free(p)</code> the first time, the block is added to the free list. The second <code>free(p)</code> tries to add <em>the same block again</em> — corrupting the list. Modern allocators detect this and abort, but you still have a bug.</p>
+
+<p>That <code>p = NULL;</code> habit from sin 2 also prevents this one: <code>free(NULL)</code> is <strong>defined to be a no-op</strong>. So if you accidentally call <code>free(p)</code> twice and <code>p</code> is <code>NULL</code>, nothing bad happens.</p>
+
+<div class="callout principle">
+  <span class="h">Why <code>free(NULL)</code> is safe</span>
+  The C standard explicitly says <code>free(NULL)</code> does nothing. This makes cleanup code simpler — you don't need to check before freeing:
+  <pre><code>free(p);
+p = NULL;
+<span class="c">// later:</span>
+free(p);     <span class="c">// no-op, totally safe</span></code></pre>
+</div>
+
+<h2>Sin 4 — Use-after-free</h2>
+
+<p>This is sin 2 + sin 3's evil cousin. Not only do you still have the pointer — you're <em>using</em> it.</p>
+
+<pre><code><span class="k">char</span> *s = malloc(10);
+strcpy(s, <span class="s">"secret"</span>);
+free(s);
+
+<span class="k">char</span> *t = malloc(10);       <span class="c">// allocator may reuse the same address!</span>
+strcpy(t, <span class="s">"other"</span>);
+
+printf(<span class="s">"%s\n"</span>, s);            <span class="err">// prints "other" — or "secret" — or crashes</span></code></pre>
+
+<p>This is the worst kind of memory bug because <strong>it might not crash</strong>. The program appears to work. The corrupted data propagates silently. In a real system, this is how passwords leak, databases corrupt, and security vulnerabilities are born.</p>
+
+<h2>Bonus: uninitialized memory</h2>
+
+<p>Not technically a heap sin — it happens on both stack and heap — but it's closely related:</p>
+
+<pre><code><span class="k">int</span> *arr = malloc(5 * <span class="k">sizeof</span>(<span class="k">int</span>));
+printf(<span class="s">"%d\n"</span>, arr[2]);    <span class="err">// whatever bytes were there before</span></code></pre>
+
+<p><code>malloc</code> does not zero memory. You get whatever was in that region last — could be zeros (lucky), could be old data from a freed allocation, could be anything. If you need zeros, use <code>calloc</code>, or explicitly zero the memory yourself.</p>
+
+<h2>The ownership rule — one allocator, one freer</h2>
+
+<p>Here's the mental model that prevents most of these bugs:</p>
+
+<div class="flow">
+  <span class="box">malloc / calloc</span>
+  <span class="arrow">→</span>
+  <span class="box" style="border-color:var(--warn)">owner</span>
+  <span class="arrow">→</span>
+  <span class="box">free</span>
+</div>
+
+<p>For every allocation, ask: <strong>who owns this memory?</strong> The owner is responsible for calling <code>free</code> — exactly once, when done. If ownership is unclear, you get leaks (nobody freed) or double-frees (everybody freed).</p>
+
+<p>Common ownership patterns:</p>
+
+<table class="table">
+  <thead><tr><th>Pattern</th><th>Who frees?</th><th>Example</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Caller allocates, caller frees</strong></td>
+      <td>The same function</td>
+      <td><code>int *a = malloc(...); ... free(a);</code></td>
+    </tr>
+    <tr>
+      <td><strong>Function returns heap memory</strong></td>
+      <td>The caller</td>
+      <td><code>char *s = mystrdup("hi"); ... free(s);</code> (your lesson 6 exercise)</td>
+    </tr>
+    <tr>
+      <td><strong>Function allocates internally</strong></td>
+      <td>The function itself</td>
+      <td>A buffer used only within a function — allocate, use, free, return result</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout danger">
+  <span class="h">Never return a pointer to stack memory</span>
+  This is a related but different bug — not a heap sin, but equally fatal:
+  <pre><code><span class="k">int</span> *bad(void) {
+    <span class="k">int</span> x = 42;
+    <span class="k">return</span> &amp;x;      <span class="err">// x dies when the function returns — dangling pointer</span>
+}</code></pre>
+  The stack frame is destroyed on return. The address <code>&x;</code> now points to... whatever the next function call puts there. Always malloc if you need the data to outlive the function.
+</div>
+
+<h2>Undefined behavior — what it really means</h2>
+
+<p>The book's table from chapter 26 is worth reproducing. <strong>Undefined behavior</strong> isn't "it crashes." It's "the compiler is allowed to assume you never did this, and may optimize accordingly."</p>
+
+<table class="table">
+  <thead><tr><th>Type</th><th>Example</th><th>Consequence</th></tr></thead>
+  <tbody>
+    <tr><td>Out-of-bounds access</td><td><code>arr[10]</code> in a 5-element array</td><td>Corrupts memory, may crash, may silently overwrite adjacent data</td></tr>
+    <tr><td>Use-after-free</td><td>Dereferencing freed pointer</td><td>Crash or silent data corruption</td></tr>
+    <tr><td>Null pointer dereference</td><td><code>*NULL</code></td><td>Segfault (crash)</td></tr>
+    <tr><td>Division by zero</td><td><code>x / 0</code></td><td>Crash (SIGFPE)</td></tr>
+    <tr><td>Modifying a string literal</td><td><code>char *s = "hi"; s[0]='H';</code></td><td>Crash (write to read-only memory)</td></tr>
+    <tr><td>Uninitialized read</td><td><code>int x; printf("%d", x);</code></td><td>Garbage value, unpredictable</td></tr>
+  </tbody>
+</table>
+
+<div class="callout principle">
+  <span class="h">Why UB is scary</span>
+  Your program may seem fine — pass all your tests — but then you compile with optimizations (<code>-O2</code> or <code>-O3</code>) and the compiler reorders or eliminates code based on "they'd never do that UB thing." Same code, different behavior. This is why experienced C programmers treat UB as <em> correctness bugs</em>, not "might crash sometimes" bugs.
+</div>
+
+<h2>Enter Valgrind — the memory debugger</h2>
+
+<p>You now have the theory. But how do you <em>find</em> these bugs in practice? Reading code carefully catches some. For the rest, there's <strong>Valgrind</strong> — a tool that runs your program in an instrumented environment and reports every memory error and leak it finds.</p>
+
+<div class="callout ok">
+  <span class="h">What Valgrind detects</span>
+  <ul>
+    <li>Memory leaks (exactly how many bytes, which allocation, which line)</li>
+    <li>Use-after-free and invalid reads/writes</li>
+    <li>Uninitialized memory reads</li>
+    <li>Double-free errors</li>
+    <li>Out-of-bounds access (with <code>--track-origins=yes</code>)</li>
+  </ul>
+</div>
+
+<p>Basic usage:</p>
+
+<pre><code>$ gcc -g buggy.c -o buggy        <span class="c"># -g adds debug symbols (line numbers!)</span>
+$ valgrind ./buggy</code></pre>
+
+<p>Reading the output is a skill in itself. Here's the anatomy of a leak report:</p>
+
+<pre><code>==12345== HEAP SUMMARY:
+==12345==     in use at exit: 400 bytes in 10 blocks
+==12345==   total heap usage: 14 allocs, 4 frees, 1,200 bytes allocated
+==12345==
+==12345== LEAK SUMMARY:
+==12345==     definitely lost: 400 bytes in 10 blocks
+==12345==     indirectly lost: 0 bytes in 0 blocks
+==12345==       possibly lost: 0 bytes in 0 blocks
+==12345==     still reachable: 0 bytes in 0 blocks</code></pre>
+
+<p>The key line: <strong>"definitely lost: 400 bytes in 10 blocks"</strong>. That's 10 <code>malloc</code>s that never got <code>free</code>'d. For the line numbers, run with <code>--leak-check=full</code> (which is actually the default):</p>
+
+<pre><code>==12345== 400 bytes in 10 blocks are definitely lost in loss record 1 of 1
+==12345==    at 0x483DA83: malloc (vg_replace_malloc.c:381)
+==12345==    by 0x1091A7: create_array (buggy.c:15)
+==12345==    by 0x109187: main (buggy.c:8)</code></pre>
+
+<p>There it is: <code>buggy.c:15</code> inside <code>create_array</code>. You allocated something on line 15 that was never freed.</p>
+
+<div class="callout warn">
+  <span class="h">Compile with <code>-g</code>!</span>
+  Without <code>-g</code>, Valgrind can't show you source file names and line numbers — just raw memory addresses. Always compile with <code>-g</code> when debugging memory errors. It costs nothing at runtime.
+</div>
+
+<h2>Alternative: AddressSanitizer</h2>
+
+<p>Valgrind is great but slow (~10-20× slowdown). For faster feedback during development, use <strong>AddressSanitizer</strong> (ASan) — it's built into GCC and Clang:</p>
+
+<pre><code>$ gcc -g -fsanitize=address buggy.c -o buggy
+$ ./buggy</code></pre>
+
+<p>ASan catches the same errors but at near-native speed. It's the tool most C developers reach for first during active development. Use Valgrind for final verification or when ASan isn't available.</p>
+
+<h2>Check yourself</h2>
+
+<div class="quiz">
+  <h3>① This function returns heap memory. Who should free it — the function or the caller?</h3>
+  <pre><code>char *make_greeting(const char *name) {
+    char *buf = malloc(100);
+    sprintf(buf, "Hello, %s!", name);
+    return buf;
+}</code>
+  <details><summary>Show answer</summary>
+  <strong>The caller.</strong> The function returns the pointer, transferring ownership. The caller must <code>free</code> it when done. This is the same pattern as <code>mystrdup</code> from lesson 6. The function <em>can't</em> free it — the caller needs the data! Document this ownership transfer in a comment or in your head: "returns malloc'd memory; caller frees."
+  </details>
+</div>
+
+<div class="quiz">
+  <h3>② What does this print — and is it defined?</h3>
+  <pre><code>int *p = malloc(sizeof(int));
+*p = 42;
+free(p);
+printf("%d\n", *p);</code>
+  <details><summary>Show answer</summary>
+  <strong>Undefined behavior.</strong> After <code>free(p)</code>, the pointer <code>p</code> is dangling. Dereferencing it (the <code>*p</code> in <code>printf</code>) is use-after-free. It might print 42 (if the heap hasn't reused the memory yet), print garbage, or crash. On your machine today it probably prints 42 — which is the dangerous part. It <em>looks</em> correct but isn't.
+  </details>
+</div>
+
+<div class="quiz">
+  <h3>③ How many leaks are in this code?</h3>
+  <pre><code>void process(void) {
+    int *a = malloc(100);
+    int *b = malloc(200);
+    a = b;
+    free(a);
+}</code>
+  <details><summary>Show answer</summary>
+  <strong>One leak — 100 bytes.</strong> <code>a</code> originally pointed to the 100-byte block. Then <code>a = b;</code> overwrites <code>a</code> with the address of the 200-byte block. Now nothing points to the 100-byte block — it's leaked. <code>free(a)</code> frees the 200-byte block (since <code>a</code> now holds <code>b</code>'s address). The 200-byte block is fine. But the original 100-byte block is gone forever.
+  </details>
+</div>
+
+<div class="quiz">
+  <h3>④ After <code>free(p); p = NULL;</code>, is <code>free(p)</code> safe to call again?</h3>
+  <details><summary>Show answer</summary>
+  <strong>Yes — it's a no-op.</strong> <code>free(NULL)</code> is defined by the C standard to do nothing. This is exactly why we nullify pointers after freeing. It makes double-free impossible and cleanup code simpler.
+  </details>
+</div>
+
+<h2>The defensive checklist</h2>
+
+<p>Print this. Stick it on your monitor. Every <code>malloc</code> you write should pass through this checklist:</p>
+
+<ol>
+  <li><strong>Check for NULL.</strong> <code>if (!ptr) { handle error; }</code> — every single <code>malloc</code>/<code>calloc</code>/<code>realloc</code>.</li>
+  <li><strong>Pair every malloc with a free.</strong> Trace ownership: who allocated, who frees, and when.</li>
+  <li><strong>Nullify after free.</strong> <code>free(p); p = NULL;</code> — prevents use-after-free and double-free.</li>
+  <li><strong>Never return stack pointers.</strong> If a value must outlive the function, malloc it.</li>
+  <li><strong>Don't overwrite your last pointer.</strong> Before <code>p = something_else;</code>, make sure the old allocation is freed.</li>
+  <li><strong>Compile with <code>-g</code> and test with Valgrind.</strong> Make it a habit, not an afterthought.</li>
+</ol>
+
+<div class="task">
+  <h3>🛠️ Hands-on — be a memory detective with Valgrind</h3>
+  <p>Write three small programs, each containing one specific memory bug. Then run them under Valgrind to see the tool in action.</p>
+  <ol class="steps">
+    <li><strong>Program 1: The leak.</strong> Write a function that <code>malloc</code>s an array of 10 ints, fills it, prints it — but never frees it. Compile with <code>-g</code>. Run under Valgrind. Find the "definitely lost" line in the output.</li>
+    <li><strong>Program 2: The use-after-free.</strong> <code>malloc</code> an int, set it to 42, <code>free</code> it, then print it again. Run under Valgrind. You'll see "Invalid read of size 4" with the exact line number.</li>
+    <li><strong>Program 3: The uninitialized read.</strong> <code>malloc</code> an array of 5 ints (not <code>calloc</code>), then print <code>arr[3]</code> without writing to it first. Run under Valgrind with <code>--track-origins=yes</code>. You'll see "Conditional jump or move depends on uninitialised value(s)"</li>
+    <li><strong>Fix all three.</strong> For each program, apply the fix (add <code>free</code>, nullify the pointer, use <code>calloc</code>). Run Valgrind again — the errors should vanish. A clean Valgrind run looks like:
+      <pre><code>==12345== HEAP SUMMARY:
+==12345==     in use at exit: 0 bytes in 0 blocks
+==12345==   total heap usage: 1 allocs, 1 frees, 40 bytes allocated
+==12345==
+==12345== All heap blocks were freed -- no leaks are possible</code></pre>
+      <strong>"All heap blocks were freed — no leaks are possible"</strong> — that's the gold standard.
+    </li>
+    <li><strong>Bonus.</strong> Try AddressSanitizer on one of the buggy programs: <code>gcc -g -fsanitize=address</code>. Compare the output to Valgrind's. Which do you find easier to read?</li>
+  </ol>
+</div>
+
+<div class="callout ok">
+  <span class="h">What you can now do</span>
+  Identify all four heap memory errors (leak, dangling pointer, double-free, use-after-free) in code. Explain why undefined behavior is not just "a crash" but a correctness bug. Use Valgrind and AddressSanitizer to find memory errors in your own programs. Apply the defensive checklist: check for NULL, pair malloc with free, nullify after free, and test with Valgrind.
+</div>
+
+<div class="ask">
+  <strong>Questions? Ask your agent.</strong>
+  Confused about a Valgrind output line? Want to see what happens with a specific bug? Wondering about realloc and leaks? Type your question — we'll dig in together. You now have the tools to catch the bugs that silently corrupt real C programs.
+</div>
+
+<div class="cite">
+  <strong>Sources &amp; further reading</strong><br>
+  · <a href="https://valgrind.org/docs/manual/quick-start.html">Valgrind Quick Start Guide</a> — how to read the output and common flags.<br>
+  · <a href="https://blog.llvm.org/2011/05/what-every-c-programmer-should-know.html">What Every C Programmer Should Know About Undefined Behavior</a> — LLVM blog post, essential reading.<br>
+  · <a href="https://en.cppreference.com/w/c/memory/malloc">cppreference: <code>malloc</code></a> — formal specification of allocation functions.<br>
+  · <a href="https://github.com/google/sanitizers/wiki/AddressSanitizer">AddressSanitizer wiki</a> — GCC/Clang's built-in memory error detector.<br>
+  · <a href="../reference/c-strings-and-memory.html">Companion cheat sheet</a> · <a href="../lessons/0006-malloc-free-and-the-heap.html">Lesson 6: malloc/free</a>
+</div>
+
+</body>
+</html>

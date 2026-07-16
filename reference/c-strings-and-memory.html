@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C Strings & Memory — Quick Reference</title>
+<style>
+  :root {
+    --ink: #1f2933;
+    --muted: #5b6770;
+    --paper: #fbfaf7;
+    --rule: #e3ddd2;
+    --accent: #0f766e;
+    --accent-soft: #e6f2f0;
+    --danger: #9b1c1c;
+    --danger-soft: #fbe8e8;
+    --code-bg: #f4f1ea;
+    --ok: #1f6f3f;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 16px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--paper);
+    line-height: 1.55;
+    margin: 0;
+    padding: 2.5rem clamp(1rem, 5vw, 4rem);
+    max-width: 880px;
+    margin: 0 auto;
+  }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 0.75rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.6rem; margin: 0; letter-spacing: -0.01em; }
+  header p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.95rem; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.6rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.25rem; }
+  h3 { font-size: 1rem; margin: 1.3rem 0 0.4rem; color: var(--accent); }
+  p { margin: 0.5rem 0; }
+  code, pre {
+    font-family: "JetBrains Mono", "SF Mono", "Fira Code", Consolas, Menlo, monospace;
+    font-size: 0.86rem;
+  }
+  code { background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 3px; }
+  pre {
+    background: var(--code-bg);
+    padding: 0.85rem 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    border: 1px solid var(--rule);
+    line-height: 1.45;
+  }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { background: var(--accent-soft); font-weight: 600; }
+  .principle {
+    background: var(--accent-soft);
+    border-left: 4px solid var(--accent);
+    padding: 0.9rem 1.1rem;
+    border-radius: 4px;
+    margin: 1rem 0;
+  }
+  .danger {
+    background: var(--danger-soft);
+    border-left: 4px solid var(--danger);
+    padding: 0.9rem 1.1rem;
+    border-radius: 4px;
+    margin: 1rem 0;
+  }
+  .ok { color: var(--ok); }
+  .bad { color: var(--danger); }
+  .tag { display: inline-block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 0.1em 0.5em; border-radius: 3px; vertical-align: middle; }
+  .tag.safe { background: #d8efe1; color: var(--ok); }
+  .tag.risky { background: var(--danger-soft); color: var(--danger); }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.82rem; }
+  @media print {
+    body { padding: 1.2rem; max-width: 100%; }
+    pre, code { white-space: pre-wrap; word-break: break-word; }
+    a { color: var(--ink); text-decoration: none; }
+  }
+</style>
+</head>
+<div class="nav" style="font-size:0.85rem;margin-bottom:1.5rem;"><a href="../index.html" style="color:var(--muted);text-decoration:none;">📚 All Lessons</a></div>
+
+<header>
+  <h1>C Strings &amp; Memory — Quick Reference</h1>
+  <p>The one-page companion to lessons on pointers, arrays, and string handling.</p>
+</header>
+
+<div class="principle">
+  <strong>The One Principle.</strong> Before you write a single byte through a pointer, two things must be true:
+  <br><strong>(1)</strong> the storage behind that pointer must actually <em>exist</em>, and
+  <strong>(2)</strong> there must be <em>enough</em> of it.
+  <br>Every string bug in C is a violation of (1) or (2).
+</div>
+
+<h2>Pointer vs Array — what actually exists in memory?</h2>
+
+<table>
+  <thead><tr><th>Declaration</th><th>What you get</th><th>Writable?</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>char *p;</code></td>
+      <td>A pointer variable (8 bytes on 64-bit). It holds an <em>address</em> — and that's all. <strong>No characters exist.</strong> Uninitialized ⇒ garbage address.</td>
+      <td><span class="tag risky">DANGER</span> Dereferencing is undefined behavior (UB).</td>
+    </tr>
+    <tr>
+      <td><code>char buf[100];</code></td>
+      <td>100 real <code>char</code>s of storage on the stack. <code>buf</code> "decays" to <code>char*</code> in most expressions, but the storage is real.</td>
+      <td><span class="tag safe">SAFE</span> Write into <code>buf</code> (up to 100 bytes).</td>
+    </tr>
+    <tr>
+      <td><code>char *p = buf;</code></td>
+      <td>A pointer that now points at real storage. Best of both: pointer flexibility, real backing.</td>
+      <td><span class="tag safe">SAFE</span></td>
+    </tr>
+    <tr>
+      <td><code>char *s = "hi";</code></td>
+      <td>A pointer to a <em>string literal</em> stored in read-only memory.</td>
+      <td><span class="tag risky">READ-ONLY</span> Writing through <code>s</code> is UB. Use <code>const char *</code>.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Reading strings from input — safely</h2>
+
+<h3><span class="bad">✗</span> The classic crash</h3>
+<pre><code>char *s;            // points nowhere
+scanf("%s", s);     // UB: writes chars to a garbage address
+</code></pre>
+
+<h3><span class="ok">✓</span> Fixed: real buffer + width limit</h3>
+<pre><code>char buf[100];
+scanf("%99s", buf); // at most 99 chars + '\0' → never overflows
+</code></pre>
+<p><strong>Why <code>%99s</code>?</strong> The width means "read at most 99 characters"; <code>scanf</code> appends the <code>'\0'</code>, totaling 100. Always size the width to <code>buffer_size − 1</code>.</p>
+
+<h3><span class="ok">✓</span> Better: a full line (spaces included)</h3>
+<pre><code>char buf[100];
+fgets(buf, sizeof buf, stdin);  // reads a line, spaces and all
+// note: keeps the trailing '\n' — strip it if you don't want it
+buf[strcspn(buf, "\n")] = '\0';
+</code></pre>
+<p><code>fgets</code> reads at most <code>sizeof buf − 1</code> chars and always null-terminates. It is the safe, boring, correct default.</p>
+
+<h2><code>&lt;string.h&gt;</code> — the functions, and what bites you</h2>
+
+<table>
+  <thead><tr><th>Function</th><th>Does</th><th>Watch out</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>strlen(s)</code></td>
+      <td>Returns length, excluding the <code>'\0'</code>.</td>
+      <td>Argument must be null-terminated. Returns <code>size_t</code>, not <code>int</code>.</td>
+    </tr>
+    <tr>
+      <td><code>strcpy(dst, src)</code></td>
+      <td>Copies <code>src</code> into <code>dst</code>, including <code>'\0'</code>.</td>
+      <td><span class="tag risky">OVERFLOW</span> If <code>src</code> is bigger than <code>dst</code>'s storage → UB. <code>dst</code> must not overlap <code>src</code>.</td>
+    </tr>
+    <tr>
+      <td><code>strcat(dst, src)</code></td>
+      <td>Appends <code>src</code> to the end of <code>dst</code>.</td>
+      <td><span class="tag risky">OVERFLOW</span> <code>dst</code> must have room for <code>strlen(dst) + strlen(src) + 1</code>. A common, silent bug.</td>
+    </tr>
+    <tr>
+      <td><code>strstr(hay, needle)</code></td>
+      <td>Returns pointer to first <code>needle</code> in <code>hay</code>, or <code>NULL</code>.</td>
+      <td>Check for <code>NULL</code> before using the result.</td>
+    </tr>
+    <tr>
+      <td><code>strcmp(a, b)</code></td>
+      <td>Compares two strings. Returns 0 if equal.</td>
+      <td>Returns 0 for equal — easy to write <code>if (strcmp(...))</code> by mistake. Use <code>== 0</code>.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Where memory lives — the three regions</h2>
+
+<table>
+  <thead><tr><th>Region</th><th>What's there</th><th>Lifetime</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Stack</strong></td><td>Local variables, function args.</td><td>Until the function returns. Pointers to these go stale after return.</td></tr>
+    <tr><td><strong>Static / global</strong></td><td>Globals, <code>static</code> locals, string literals.</td><td>The whole program. String literals are read-only.</td></tr>
+    <tr><td><strong>Heap</strong></td><td><code>malloc</code>/<code>calloc</code>/<code>realloc</code> memory.</td><td>Until you <code>free</code> it. You own it.</td></tr>
+  </tbody>
+</table>
+
+<div class="danger">
+  <strong>Undefined Behavior (UB) — the rule, not the exception.</strong>
+  When the standard says a program's behavior is "undefined," the compiler is allowed to assume you'd <em>never</em> do that — and optimize accordingly. UB is not "it crashes." UB is "anything can happen," including working fine today and corrupting data tomorrow. Treat every out-of-bounds write and every dangling pointer as a correctness bug, full stop.
+  <br><a href="https://blog.llvm.org/2011/05/what-every-c-programmer-should-know.html">Read: What Every C Programmer Should Know About UB (LLVM)</a>
+</div>
+
+<h2>Golden checklist before every <code>scanf</code> / <code>strcpy</code> / <code>strcat</code></h2>
+<ol>
+  <li>Does the destination have <em>real</em> storage? (Array or heap, not a bare pointer.)</li>
+  <li>Is it <em>big enough</em>? Count: existing length + incoming length + 1 for <code>'\0'</code>.</li>
+  <li>If reading input, did I cap the width? (<code>%99s</code>, or use <code>fgets</code>.)</li>
+  <li>Is the source null-terminated?</li>
+</ol>
+
+<footer>
+  Companion reference for the <em>arrays &amp; strings</em> workspace.
+  See <code>../MISSION.md</code> for learning goals and <code>../learning-records/</code> for progress.
+  Sources: <a href="https://beej.us/guide/bgc/">Beej's Guide</a> · <a href="https://en.cppreference.com/w/c.html">cppreference</a> · <a href="https://c-faq.com/">comp.lang.c FAQ</a>
+</footer>
+
+</body>
+</html>

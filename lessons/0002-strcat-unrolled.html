@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 2 — strcat, Unrolled</title>
+<style>
+  :root {
+    --ink: #1f2933;
+    --muted: #5b6770;
+    --paper: #fbfaf7;
+    --rule: #e3ddd2;
+    --accent: #0f766e;
+    --accent-soft: #e6f2f0;
+    --danger: #9b1c1c;
+    --danger-soft: #fbe8e8;
+    --ok: #1f6f3f;
+    --ok-soft: #e3f3ea;
+    --code-bg: #f4f1ea;
+    --warn: #9a6700;
+    --warn-soft: #fdf3df;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 16px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--paper);
+    line-height: 1.6;
+    margin: 0 auto;
+    padding: 2.5rem clamp(1rem, 5vw, 4rem);
+    max-width: 820px;
+  }
+  .meta { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.3rem; }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.9rem; margin: 0; line-height: 1.2; letter-spacing: -0.015em; }
+  .lede { font-size: 1.1rem; color: var(--muted); margin: 0.8rem 0 0; }
+  h2 { font-size: 1.3rem; margin: 2.4rem 0 0.6rem; }
+  h3 { font-size: 1.05rem; margin: 1.6rem 0 0.4rem; color: var(--accent); }
+  p { margin: 0.7rem 0; }
+  code, pre {
+    font-family: "JetBrains Mono", "SF Mono", "Fira Code", Consolas, Menlo, monospace;
+    font-size: 0.86rem;
+  }
+  code { background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 3px; }
+  pre {
+    background: #263238;
+    color: #eceff1;
+    padding: 0.95rem 1.1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    line-height: 1.5;
+    font-size: 0.84rem;
+  }
+  pre code { background: none; padding: 0; color: inherit; }
+  pre .c { color: #8aa0a6; font-style: italic; }
+  pre .bad { color: #ff8a80; }
+  pre .good { color: #b9f6ca; }
+  pre .k { color: #ffccbc; }
+  pre .s { color: #fff59d; }
+  pre .hi { background: #37474f; border-radius: 2px; padding: 0.05em 0.15em; }
+  .callout {
+    padding: 0.95rem 1.15rem;
+    border-radius: 6px;
+    margin: 1.2rem 0;
+    border-left: 4px solid;
+  }
+  .callout .h { font-weight: 700; display: block; margin-bottom: 0.2rem; }
+  .principle { background: var(--accent-soft); border-color: var(--accent); }
+  .danger { background: var(--danger-soft); border-color: var(--danger); }
+  .warn { background: var(--warn-soft); border-color: var(--warn); }
+  .ok { background: var(--ok-soft); border-color: var(--ok); }
+  .quiz {
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 1.2rem 1.3rem;
+    margin: 1.5rem 0;
+  }
+  .quiz h3 { color: var(--ink); margin-top: 0; }
+  details {
+    margin-top: 0.7rem;
+    padding: 0.7rem 0.95rem;
+    background: var(--ok-soft);
+    border-radius: 6px;
+    border-left: 3px solid var(--ok);
+  }
+  details summary { cursor: pointer; font-weight: 600; color: var(--ok); }
+  details[open] summary { margin-bottom: 0.5rem; }
+  .ascii {
+    background: var(--code-bg);
+    color: var(--ink);
+    border-radius: 6px;
+    padding: 0.9rem 1rem;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.74rem;
+    line-height: 1.45;
+    overflow-x: auto;
+    white-space: pre;
+    border: 1px solid var(--rule);
+  }
+  .ascii .hl { background: #ffe082; border-radius: 2px; padding: 0.05em 0.1em; color: #5d4037; }
+  .ascii .gone { color: var(--danger); text-decoration: line-through; }
+  .ascii .new { color: var(--ok); font-weight: 700; }
+  .yourcode {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-soft);
+    padding: 0.6rem 0.95rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    margin: 1rem 0;
+  }
+  .yourcode::before { content: "from your study"; display: block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.3rem; }
+  .task {
+    background: linear-gradient(135deg, #f0fdfa, #ecfeff);
+    border: 1px solid #99f6e4;
+    border-radius: 10px;
+    padding: 1.3rem 1.4rem;
+    margin: 1.8rem 0;
+  }
+  .task h3 { color: var(--accent); margin-top: 0; }
+  ol.steps { padding-left: 1.3rem; }
+  ol.steps li { margin: 0.45rem 0; }
+  .acts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.6rem;
+    margin: 1.2rem 0;
+  }
+  .act {
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-top: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 0.7rem 0.8rem;
+    font-size: 0.88rem;
+  }
+  .act .n { font-size: 0.7rem; font-weight: 700; color: var(--accent); letter-spacing: 0.05em; }
+  .act strong { display: block; margin: 0.15rem 0; }
+  @media (max-width: 560px) { .acts { grid-template-columns: 1fr; } }
+  .cite { font-size: 0.85rem; color: var(--muted); border-top: 1px solid var(--rule); margin-top: 2.5rem; padding-top: 1rem; }
+  .ask {
+    background: var(--accent);
+    color: #fff;
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    margin-top: 2rem;
+  }
+  .ask code { background: rgba(0,0,0,0.15); color: #fff; }
+  .ask strong { display: block; margin-bottom: 0.3rem; }
+  a { color: var(--accent); }
+  .nav { font-size: 0.85rem; margin-bottom: 1.5rem; }
+  .nav a { color: var(--muted); text-decoration: none; }
+  @media print {
+    body { padding: 1rem; max-width: 100%; }
+    pre, .ascii { white-space: pre-wrap; word-break: break-word; }
+    details > *:not(summary) { display: block !important; }
+    .ask, .task { background: none; border: 1px solid var(--ink); color: var(--ink); }
+  }
+</style>
+</head>
+<body>
+
+<div class="nav">📚 <a href="../index.html">All Lessons</a> · ↩ <a href="../lessons/0001-pointer-vs-array-storage.html">Lesson 1</a> · <a href="../reference/c-strings-and-memory.html">Reference</a></div>
+
+<div class="meta">Lesson 2 · ~15 minutes · ties to mission: <em>understand how memory works</em></div>
+<header>
+  <h1><code>strcat</code>, Unrolled</h1>
+  <p class="lede">You've called <code>strcat(a, b)</code> before. Now write the gears yourself — and meet the two-pointer copy idiom, the most repeated pattern in C.</p>
+</header>
+
+<h2>The code we're studying</h2>
+
+<div class="yourcode">
+<pre><code><span class="k">char</span> dest[20] = <span class="s">"Hello"</span>;
+<span class="k">char</span> *str2 = <span class="s">"World"</span>;
+
+<span class="k">char</span> *p = dest;            <span class="c">// 1. p starts at the beginning of dest</span>
+<span class="k">while</span> (*p != <span class="s">'\0'</span>) {        <span class="c">// 2. Advance p until it points at dest's '\0'</span>
+    p++;
+}
+
+<span class="k">char</span> *q = str2;            <span class="c">// 3. q reads from str2</span>
+<span class="k">while</span> (*q != <span class="s">'\0'</span>) {        <span class="c">// 4. Copy in lockstep</span>
+    *p = *q;
+    p++;
+    q++;
+}
+
+*p = <span class="s">'\0'</span>;                  <span class="c">// 5. Re-seal the string</span>
+
+printf(<span class="s">"Concatenated: %s\n"</span>, dest);   <span class="c">// → HelloWorld</span></code></pre>
+</div>
+
+<p>Good news: <strong>you already know what this does.</strong> It's <code>strcat(dest, str2)</code> written out by hand. The book is making you build the engine so you can see every tooth on the gears.</p>
+
+<h2>The shape of it — three acts</h2>
+
+<div class="acts">
+  <div class="act">
+    <div class="n">ACT 1 · steps 1–2</div>
+    <strong>Find the end.</strong>
+    Walk <code>p</code> forward until it lands on <code>dest</code>'s existing <code>'\0'</code>.
+  </div>
+  <div class="act">
+    <div class="n">ACT 2 · steps 3–4</div>
+    <strong>Copy in lockstep.</strong>
+    Two pointers step together: read from <code>q</code>, write to <code>p</code>, advance both.
+  </div>
+  <div class="act">
+    <div class="n">ACT 3 · step 5</div>
+    <strong>Re-seal.</strong>
+    Write a fresh <code>'\0'</code> at the new end. Mandatory.
+  </div>
+</div>
+
+<p>Act 1 is literally your <code>mystrlen</code> pointer-walk — but instead of <em>counting</em>, you just keep the pointer. You already know this move. The only new idea is Act 2.</p>
+
+<h2>Watch the bytes move</h2>
+
+<p>Here is the whole lesson, as a diagram. <strong>Before Act 2</strong> — <code>p</code> has walked to <code>dest</code>'s terminator, <code>q</code> sits at the start of <code>str2</code>:</p>
+
+<div class="ascii">dest:   H  e  l  l  o <span class="hl">'\0'</span>  ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?   ?
+index:  0  1  2  3  4  5   6   7   8   9  10                              19
+                      ^
+                      p   ← landed right on the old '\0'
+
+str2:   W  o  r  l  d  '\0'
+        ^
+        q</div>
+
+<p><strong>During Act 2</strong> — five iterations of <code>*p = *q; p++; q++;</code>. Notice the old terminator at index 5 gets <em>overwritten on the very first copy</em>:</p>
+
+<div class="ascii">iter 1:  dest[5] = 'W'    <span class="gone">  ← the old '\0' is clobbered (that's fine)</span>
+iter 2:  dest[6] = 'o'
+iter 3:  dest[7] = 'r'
+iter 4:  dest[8] = 'l'
+iter 5:  dest[9] = 'd'      <span class="gone">  → p advances to [10], q hits '\0', loop exits</span></div>
+
+<p><strong>After Act 3</strong> — <code>*p = '\0'</code> writes the new terminator at index 10:</p>
+
+<div class="ascii">dest:   H  e  l  l  o  W  o  r  l  d <span class="new">'\0'</span>  ?   ?   ?   ?   ?   ?   ?   ?   ?
+index:  0  1  2  3  4  5  6  7  8  9  10                              19
+                                    ^
+                                    p   (now points at the new '\0')</div>
+
+<p><code>printf("%s", dest)</code> reads from index 0 until it hits <code>'\0'</code> at index 10 → prints <code>HelloWorld</code>. The garbage bytes at indices 11–19 never matter — the <code>'\0'</code> tells every string function where to stop.</p>
+
+<h2>The one subtle thing</h2>
+
+<div class="callout principle">
+  <span class="h">Act 2 overwrites the old <code>'\0'</code>. That's not a bug — it's the plan.</span>
+  The terminator of <code>"Hello"</code> only existed to mark <em>where the string used to end</em>. Once we're appending, that position is the start of new data. Which is exactly why <strong>Act 3 is mandatory</strong>: forget <code>*p = '\0';</code> and the string has no end — <code>printf</code> walks off into garbage. <em>Forget the seal, get demons.</em>
+</div>
+
+<h2>The idiom you'll see everywhere</h2>
+
+<pre><code><span class="hi">*p = *q;</span>     <span class="c">// read what q points at, write it where p points at</span>
+<span class="hi">p++;</span>         <span class="c">// advance the write head</span>
+<span class="hi">q++;</span>         <span class="c">// advance the read head</span></pre>
+
+<p>This two-pointer lockstep is <strong>the</strong> C idiom for "move bytes from here to there." It's not just <code>strcat</code> — it's <code>strcpy</code>, it's <code>memcpy</code>, it's every custom buffer copy you'll ever write. Two heads on a zipper. Once you see it, you'll see it everywhere.</p>
+
+<div class="callout warn">
+  <span class="h">You'll see it compressed: <code>*p++ = *q++;</code></span>
+  Postfix <code>++</code> binds tighter than <code>*</code>, so this means "copy, then advance both." Grown-up C code uses it constantly. Readable once you know it; a trap until you do. <strong>Keep writing the three-line version for now</strong> — clarity beats cleverness while you're learning. Switch to the compact form only when the long form starts to feel tedious.
+</div>
+
+<h2>Memory safety check (your Lesson 1 instinct)</h2>
+<p>Before any <code>strcat</code> — hand-rolled or library — run the checklist from <a href="../reference/c-strings-and-memory.html">the reference</a>:</p>
+<ol>
+  <li><strong>Does <code>dest</code> have real storage?</strong> ✅ <code>char dest[20]</code> — 20 real bytes on the stack.</li>
+  <li><strong>Big enough?</strong> <code>"Hello"</code> (5) + <code>"World"</code> (5) + <code>'\0'</code> (1) = <strong>11 ≤ 20</strong>. ✅</li>
+</ol>
+<p>This is why your <code>exercise_concatinate_inputs.c</code> crashed and this doesn't. Same operation, same idiom — the only difference is whether real, correctly-sized storage backs the write pointer. The principle is doing real work for you now.</p>
+
+<h2>Check yourself</h2>
+
+<div class="quiz">
+  <h3>① What happens if you delete Act 3 — the final <code>*p = '\0';</code>?</h3>
+  <details><summary>Show answer</summary>
+  The loop writes <code>World</code> into indices 5–9, then stops. But index 10 still holds whatever garbage was there. <code>printf("%s")</code> keeps reading past <code>'d'</code> until it <em>happens</em> to find a zero byte — printing <code>HelloWorld</code> followed by random garbage, or crashing, or both. <strong>Act 3 is not optional.</strong> Every string you build by hand must end in <code>'\0'</code>.
+  </details>
+</div>
+
+<div class="quiz">
+  <h3>② After Act 1, where does <code>p</code> point — and what's stored there?</h3>
+  <details><summary>Show answer</summary>
+  <code>p</code> points at <code>dest[5]</code>, which holds <code>'\0'</code> (the terminator of <code>"Hello"</code>). That's the correct insertion point: the first slot of "new" data. The first copy (<code>iter 1</code>) overwrites this <code>'\0'</code> with <code>'W'</code> — which is fine, because Act 3 will place a new terminator further along.
+  </details>
+</div>
+
+<div class="quiz">
+  <h3>③ Why does the loop test <code>*q != '\0'</code> and <em>not</em> <code>*p != '\0'</code>?</h3>
+  <details><summary>Show answer</summary>
+  <code>q</code> walks the <em>source</em> (<code>str2</code>). We stop copying when the source runs out — i.e. when <code>q</code> reaches its <code>'\0'</code>. Testing <code>*p</code> would be wrong: <code>p</code> walks the <em>destination</em>, whose contents are partially garbage. The copy length is governed by the source, always.
+  </details>
+</div>
+
+<div class="quiz">
+  <h3>④ What if <code>dest</code> were only 8 bytes — <code>char dest[8] = "Hello";</code>?</h3>
+  <details><summary>Show answer</summary>
+  <strong>Undefined behavior.</strong> <code>"Hello"</code> uses 6 bytes (5 + <code>'\0'</code>); <code>dest[8]</code> has 2 free slots. Appending <code>"World"</code> (5 chars) writes past the end into memory that isn't yours. Same bug as <code>common_str_ops.c</code> from Lesson 1 — bug (2), not enough storage. The hand-rolled <code>strcat</code> has <em>no idea</em> how big <code>dest</code> is. Neither does the library version. <strong>Buffer sizing is always the caller's job.</strong>
+  </details>
+</div>
+
+<div class="task">
+  <h3>🛠️ Hands-on — turn it into a function</h3>
+  <p>Make the code reusable by wrapping it in a function:</p>
+  <pre><code><span class="k">void</span> mystrcat(<span class="k">char</span> *dest, <span class="k">const char</span> *src) {
+    <span class="c">// ... your code here ...</span>
+}</code></pre>
+  <ol class="steps">
+    <li>The body is your steps 1–5 almost verbatim — just use the parameter names <code>dest</code> and <code>src</code> instead of <code>dest</code>/<code>str2</code>.</li>
+    <li>Call it from <code>main</code>: <code>mystrcat(dest, str2);</code> then print.</li>
+    <li>If it prints <code>HelloWorld</code>, you own the pattern.</li>
+    <li><strong>Bonus:</strong> write a second call — <code>mystrcat(dest, "!!!");</code> — right after the first. Confirm <code>dest</code> now reads <code>HelloWorld!!!</code>. (Why does it work twice? Because Act 1 re-finds the new end each time.)</li>
+  </ol>
+  <details>
+    <summary>Compare with a model solution</summary>
+<pre><code><span class="k">#include</span> <span class="s">&lt;stdio.h&gt;</span>
+
+<span class="k">void</span> mystrcat(<span class="k">char</span> *dest, <span class="k">const char</span> *src) {
+    <span class="k">char</span> *p = dest;
+    <span class="k">while</span> (*p != <span class="s">'\0'</span>) {     <span class="c">// Act 1: find the end of dest</span>
+        p++;
+    }
+    <span class="k">const char</span> *q = src;
+    <span class="k">while</span> (*q != <span class="s">'\0'</span>) {     <span class="c">// Act 2: copy in lockstep</span>
+        *p = *q;
+        p++;
+        q++;
+    }
+    *p = <span class="s">'\0'</span>;               <span class="c">// Act 3: re-seal</span>
+}
+
+<span class="k">int</span> main(<span class="k">void</span>) {
+    <span class="k">char</span> dest[20] = <span class="s">"Hello"</span>;
+    <span class="k">const char</span> *str2 = <span class="s">"World"</span>;
+
+    mystrcat(dest, str2);
+    mystrcat(dest, <span class="s">"!!!"</span>);
+    printf(<span class="s">"Concatenated: %s\n"</span>, dest);   <span class="c">// → HelloWorld!!!</span>
+    <span class="k">return</span> 0;
+}</code></pre>
+    <p>Notice <code>const char *src</code>: we promise never to write through <code>src</code>. That's the same <code>const</code> instinct from Lesson 1, applied at the function boundary — and it lets you pass a string literal (<code>"!!!"</code>) without warning, because literals are <code>const</code>-qualified at heart.</p>
+  </details>
+</div>
+
+<div class="callout ok">
+  <span class="h">What you can now do</span>
+  Read <code>strcat</code>, <code>strcpy</code>, and any hand-rolled copy loop and see the same three-act structure underneath: <em>find the destination's end, copy in two-pointer lockstep, re-seal with <code>'\0'</code></em>. You've also seen the compact idiom <code>*p++ = *q++;</code> and know what it expands to. That idiom will recur for the rest of your C life.
+</div>
+
+<div class="ask">
+  <strong>Questions? Ask your agent.</strong>
+  Anything murky — "why does <code>*p++ = *q++</code> work left-to-right?", "what's the difference between <code>const char *</code> and <code>char * const</code>?", "how would I write <code>mystrcpy</code> with the same pattern?" — type it and we'll dig in. The two-pointer idiom is worth knowing cold; everything downstream builds on it.
+</div>
+
+<div class="cite">
+  <strong>Sources &amp; further reading</strong><br>
+  · <a href="https://en.cppreference.com/w/c/string/byte/strcat">cppreference: <code>strcat</code></a> — what the library version guarantees (and conspicuously does <em>not</em>: bounds checking).<br>
+  · <a href="https://beej.us/guide/bgc/">Beej's Guide to C Programming</a> — pointers, arrays, and strings, explained humanely.<br>
+  · <a href="https://c-faq.com/aryptr/index.html">comp.lang.c FAQ — Arrays and Pointers</a> — the canonical answers to "are arrays and pointers the same?" (spoiler: no, and <code>strcat</code> is where you feel it).<br>
+  · <a href="../reference/c-strings-and-memory.html">Companion cheat sheet</a> · <a href="../lessons/0001-pointer-vs-array-storage.html">Lesson 1: pointer vs array storage</a>
+</div>
+
+</body>
+</html>
