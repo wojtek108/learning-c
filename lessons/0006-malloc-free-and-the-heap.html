@@ -206,7 +206,7 @@
 
 <h2>The pattern — always check for <code>NULL</code></h2>
 
-<pre><code><span class="k">char</span> *buf = malloc(<span class="s">100</span> * <span class="k">sizeof</span>(<span class="k">char</span>));
+<pre><code><span class="k">char</span> *buf = malloc(100 * <span class="k">sizeof</span>(<span class="k">char</span>));
 <span class="k">if</span> (buf == NULL) {
     printf(<span class="s">"Out of memory!\n"</span>);
     <span class="k">return</span> 1;            <span class="c">// or handle the error</span>
