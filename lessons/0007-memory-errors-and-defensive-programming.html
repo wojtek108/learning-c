@@ -209,6 +209,21 @@
     <span class="err">// the 100 bytes are still claimed, but no pointer reaches them</span>
 }</code></pre>
 
+<div class="callout warn">
+  <span class="h">What's <code>sprintf</code>?</span>
+  You've used <code>printf</code> to print to the terminal. <code>sprintf</code> does the same formatting — but writes the result into a <code>char</code> buffer instead:
+  <pre><code><span class="c">/* printf  → writes to stdout (the screen) */</span>
+printf(<span class="s">"Hello, %s!\n"</span>, name);
+
+<span class="c">/* sprintf → writes to a char buffer */</span>
+sprintf(msg, <span class="s">"Hello, %s!"</span>, name);
+<span class="c">// msg now contains "Hello, Wojtek!"</span>
+
+<span class="c">/* snprintf → same, but capped at n bytes (safer) */</span>
+snprintf(msg, 100, <span class="s">"Hello, %s!"</span>, name);</code></pre>
+  Same format specifiers across all three. The <code>s</code> prefix stands for "string." In real code, prefer <code>snprintf</code> — it takes a max length and can't overflow the buffer.
+</div>
+
 <p>Every time <code>greet</code> is called, 100 bytes vanish. In a short-lived program, you'd never notice. In a server running for weeks, it slowly bleeds to death. The fix is trivial:</p>
 
 <pre><code>    free(msg);    <span class="c">// give it back before the pointer dies</span></code></pre>
