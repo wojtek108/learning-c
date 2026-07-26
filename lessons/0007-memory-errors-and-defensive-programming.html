@@ -79,6 +79,7 @@
   }
   .quiz h3 { color: var(--ink); margin-top: 0; }
   details {
+    color: var(--ink);
     margin-top: 0.7rem;
     padding: 0.7rem 0.95rem;
     background: var(--ok-soft);
@@ -429,7 +430,7 @@ $ ./buggy</code></pre>
     char *buf = malloc(100);
     sprintf(buf, "Hello, %s!", name);
     return buf;
-}</code>
+}</code></pre>
   <details><summary>Show answer</summary>
   <strong>The caller.</strong> The function returns the pointer, transferring ownership. The caller must <code>free</code> it when done. This is the same pattern as <code>mystrdup</code> from lesson 6. The function <em>can't</em> free it — the caller needs the data! Document this ownership transfer in a comment or in your head: "returns malloc'd memory; caller frees."
   </details>
@@ -440,7 +441,7 @@ $ ./buggy</code></pre>
   <pre><code>int *p = malloc(sizeof(int));
 *p = 42;
 free(p);
-printf("%d\n", *p);</code>
+printf("%d\n", *p);</code></pre>
   <details><summary>Show answer</summary>
   <strong>Undefined behavior.</strong> After <code>free(p)</code>, the pointer <code>p</code> is dangling. Dereferencing it (the <code>*p</code> in <code>printf</code>) is use-after-free. It might print 42 (if the heap hasn't reused the memory yet), print garbage, or crash. On your machine today it probably prints 42 — which is the dangerous part. It <em>looks</em> correct but isn't.
   </details>
@@ -453,7 +454,7 @@ printf("%d\n", *p);</code>
     int *b = malloc(200);
     a = b;
     free(a);
-}</code>
+}</code></pre>
   <details><summary>Show answer</summary>
   <strong>One leak — 100 bytes.</strong> <code>a</code> originally pointed to the 100-byte block. Then <code>a = b;</code> overwrites <code>a</code> with the address of the 200-byte block. Now nothing points to the 100-byte block — it's leaked. <code>free(a)</code> frees the 200-byte block (since <code>a</code> now holds <code>b</code>'s address). The 200-byte block is fine. But the original 100-byte block is gone forever.
   </details>

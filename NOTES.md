@@ -20,10 +20,10 @@
 - `0007-memory-errors-and-defensive-programming.html` — the four heap sins (leak, dangling pointer, double-free, use-after-free), ownership rule, undefined behavior, Valgrind & ASan. Hands-on: write buggy programs, detect with Valgrind, fix them.
 
 ## Where the user is right now
-- On page 89 of *A Little Book of C* — Memory leaks/UB (ch 26) done, starting const/volatile (ch 27). Lessons 0001–0007 are written.
-- The user has read through chapter 26 (memory errors & defensive techniques) and requested a lesson for it.
-- After completing lesson 7, the next frontier is `volatile` qualifier (ch 27, partially new — `const` already covered in lesson 3) or function pointers (ch 28).
-- After completing these lessons, the next frontier is deeper malloc practice (dynamically-growing buffers) or whatever the book covers next after dynamic memory.
+- Page 93 of *A Little Book of C* — finished Chapter 27 (const/volatile).
+- Completed Exercise 2 (volatile + assembly comparison) in session 0002.
+- Lesson 0008 created covering Exercises 3, 4, 5 (const param, const pointer variants, const volatile).
+- Next: Chapter 28 — Function Pointers and Callbacks (p. 93+).
 
 ## Open questions
 - Weekly time budget not yet specified — calibrate lesson density once known.

@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 8 — const and volatile</title>
+<style>
+  :root {
+    --ink: #1f2933;
+    --muted: #5b6770;
+    --paper: #fbfaf7;
+    --rule: #e3ddd2;
+    --accent: #0f766e;
+    --accent-soft: #e6f2f0;
+    --danger: #9b1c1c;
+    --danger-soft: #fbe8e8;
+    --ok: #1f6f3f;
+    --ok-soft: #e3f3ea;
+    --code-bg: #f4f1ea;
+    --warn: #9a6700;
+    --warn-soft: #fdf3df;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 16px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--paper);
+    line-height: 1.6;
+    margin: 0 auto;
+    padding: 2.5rem clamp(1rem, 5vw, 4rem);
+    max-width: 820px;
+  }
+  .meta { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.3rem; }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.9rem; margin: 0; line-height: 1.2; letter-spacing: -0.015em; }
+  .lede { font-size: 1.1rem; color: var(--muted); margin: 0.8rem 0 0; }
+  h2 { font-size: 1.3rem; margin: 2.4rem 0 0.6rem; }
+  h3 { font-size: 1.05rem; margin: 1.6rem 0 0.4rem; color: var(--accent); }
+  p { margin: 0.7rem 0; }
+  code, pre {
+    font-family: "JetBrains Mono", "SF Mono", "Fira Code", Consolas, Menlo, monospace;
+    font-size: 0.86rem;
+  }
+  code { background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 3px; }
+  pre {
+    background: #263238;
+    color: #eceff1;
+    padding: 0.95rem 1.1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    line-height: 1.5;
+    font-size: 0.84rem;
+  }
+  pre code { background: none; padding: 0; color: inherit; }
+  pre .c { color: #8aa0a6; font-style: italic; }
+  pre .bad { color: #ff8a80; }
+  pre .good { color: #b9f6ca; }
+  pre .k { color: #ffccbc; }
+  pre .s { color: #fff59d; }
+  pre .err { color: #ff5252; font-weight: 700; }
+  pre .dim { color: #677a82; }
+  .callout {
+    padding: 0.95rem 1.15rem;
+    border-radius: 6px;
+    margin: 1.2rem 0;
+    border-left: 4px solid;
+  }
+  .callout .h { font-weight: 700; display: block; margin-bottom: 0.2rem; }
+  .principle { background: var(--accent-soft); border-color: var(--accent); }
+  .danger { background: var(--danger-soft); border-color: var(--danger); }
+  .warn { background: var(--warn-soft); border-color: var(--warn); }
+  .ok { background: var(--ok-soft); border-color: var(--ok); }
+  .quiz {
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 1.2rem 1.3rem;
+    margin: 1.5rem 0;
+  }
+  .quiz h3 { color: var(--ink); margin-top: 0; }
+  details {
+    color: var(--ink);
+    margin-top: 0.7rem;
+    padding: 0.7rem 0.95rem;
+    background: var(--ok-soft);
+    border-radius: 6px;
+    border-left: 3px solid var(--ok);
+  }
+  details summary { cursor: pointer; font-weight: 600; color: var(--ok); }
+  details[open] summary { margin-bottom: 0.5rem; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.2rem 0;
+    font-size: 0.9rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.6rem 0.7rem;
+    border: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  th {
+    background: var(--accent-soft);
+    font-weight: 600;
+    font-size: 0.82rem;
+    letter-spacing: 0.03em;
+  }
+  td:first-child code {
+    background: none;
+    font-weight: 700;
+  }
+  .tag { display: inline-block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 0.1em 0.5em; border-radius: 3px; vertical-align: middle; }
+  .tag.locked { background: var(--danger-soft); color: var(--danger); }
+  .tag.free { background: var(--ok-soft); color: var(--ok); }
+  .tag.neutral { background: var(--code-bg); color: var(--muted); }
+  .asm {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 0.95rem 1.1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    line-height: 1.5;
+    font-size: 0.8rem;
+  }
+  .asm .insn { color: #569cd6; }
+  .asm .reg { color: #9cdcfe; }
+  .asm .num { color: #b5cea8; }
+  .asm .c { color: #6a9955; font-style: italic; }
+  .ask {
+    background: var(--accent);
+    color: #fff;
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    margin-top: 2rem;
+  }
+  .ask code { background: rgba(0,0,0,0.15); color: #fff; }
+  .ask strong { display: block; margin-bottom: 0.3rem; }
+  .cite { font-size: 0.85rem; color: var(--muted); border-top: 1px solid var(--rule); margin-top: 2.5rem; padding-top: 1rem; }
+  a { color: var(--accent); }
+  .nav { font-size: 0.85rem; margin-bottom: 1.5rem; }
+  .nav a { color: var(--muted); text-decoration: none; }
+  @media print {
+    body { padding: 1rem; max-width: 100%; }
+    pre { white-space: pre-wrap; word-break: break-word; }
+    details > *:not(summary) { display: block !important; }
+    .ask, .task { background: none; border: 1px solid var(--ink); color: var(--ink); }
+  }
+</style>
+</head>
+<body>
+
+<div class="nav">📚 <a href="../index.html">All Lessons</a> · ↩ <a href="../lessons/0007-memory-errors-and-defensive-programming.html">Lesson 7</a> · <a href="../lessons/0003-const-qualifier-matrix.html">Lesson 3 (const matrix)</a></div>
+
+<div class="meta">Lesson 8 · ~30 minutes · ties to mission: <em>understand how the machine works under the hood</em></div>
+
+<header>
+  <h1><code>const</code> and <code>volatile</code></h1>
+  <p class="lede">Two qualifiers that act as <strong>contracts</strong> between your code and the compiler. <code>const</code> locks things down so the compiler catches mistakes. <code>volatile</code> forces the compiler to re-read memory every time, preventing optimisations that would break correctness. Together they let you balance safety with performance at a low level.</p>
+</header>
+
+<p class="meta">Based on <em>A Little Book of C</em>, Chapter 27 (pp. 89–92)</p>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+
+<h2>The <code>const</code> Qualifier</h2>
+
+<p><code>const</code> is a <strong>promise to the compiler</strong> — and to other programmers — that a value won't change. The compiler enforces it: any code that tries to modify a <code>const</code> object gets a compile error.</p>
+
+<pre><code><span class="k">const int</span> max_users = <span class="s">100</span>;
+max_users = <span class="s">200</span>;  <span class="err">// ❌ compile error</span></code></pre>
+
+<p>But <code>const</code> isn't just for simple variables. You can apply it to:</p>
+<ul>
+  <li>Variables (like <code>const int max_users</code>)</li>
+  <li><strong>Function parameters</strong> — the most common use in real code</li>
+  <li><strong>Pointers</strong> — in three different positions, each locking something different</li>
+  <li><strong>Return types</strong> — promising the caller they get read-only data</li>
+</ul>
+
+<h3><code>const</code> with Pointers</h3>
+
+<p>This is where most confusion happens. The position of <code>const</code> determines what is locked — the pointer itself or the data it points at.</p>
+
+<table>
+  <tr><th>Declaration</th><th>Data locked?</th><th>Pointer locked?</th><th>Read aloud (right → left)</th></tr>
+  <tr>
+    <td><code>const int *p;</code></td>
+    <td><span class="tag locked">locked</span></td>
+    <td><span class="tag free">free</span></td>
+    <td><em>"p is a pointer to a <strong>const int</strong>"</em></td>
+  </tr>
+  <tr>
+    <td><code>int * const p;</code></td>
+    <td><span class="tag free">free</span></td>
+    <td><span class="tag locked">locked</span></td>
+    <td><em>"p is a <strong>const pointer</strong> to an int"</em></td>
+  </tr>
+  <tr>
+    <td><code>const int * const p;</code></td>
+    <td><span class="tag locked">locked</span></td>
+    <td><span class="tag locked">locked</span></td>
+    <td><em>"p is a <strong>const pointer</strong> to a <strong>const int</strong>"</em></td>
+  </tr>
+</table>
+
+<div class="callout principle">
+  <span class="h">The two-question test</span>
+  <strong>(1)</strong> Can I reassign the pointer?<br>
+  <strong>(2)</strong> Can I write through <code>*p</code>?<br><br>
+  <code>const</code> <em>before</em> <code>*</code> → answer (2) is <strong>no</strong> (data locked).<br>
+  <code>const</code> <em>after</em> <code>*</code> → answer (1) is <strong>no</strong> (pointer locked).
+</div>
+
+<pre><code><span class="k">int</span> value = <span class="s">42</span>;
+<span class="k">int</span> other = <span class="s">99</span>;
+
+<span class="c">// case 1: const int *p — data is read-only through p</span>
+<span class="k">const int</span> *p = &amp;value;
+<span class="bad">// *p = 100;          // ❌ data locked</span>
+p = &amp;other;              <span class="c">// ✅ pointer can move</span>
+
+<span class="c">// case 2: int *const q — pointer is nailed in place</span>
+<span class="k">int</span> *<span class="k">const</span> q = &amp;value;
+*q = <span class="s">100</span>;                 <span class="c">// ✅ data is writable</span>
+<span class="bad">// q = &amp;other;          // ❌ pointer locked</span></code></pre>
+
+<div class="callout warn">
+  <span class="h">Important nuance</span>
+  With <code>const int *p</code>, the data is read-only <em>through <code>p</code></em>. But if the original variable <code>value</code> was not itself declared <code>const</code>, you can still modify it through the original name: <code>value = 100;</code>. <code>const</code> on a pointer restricts <strong>that access path only</strong>.
+</div>
+
+<div class="callout ok">
+  <span class="h">Note:</span> <code>char const *p</code> is identical to <code>const char *p</code>. Both mean "pointer to constant char." Pick one and stay consistent.
+</div>
+
+<p>For a deeper dive with quizzes and walkthroughs, see <a href="../lessons/0003-const-qualifier-matrix.html">Lesson 3 — The const Matrix</a>.</p>
+
+<h3><code>const</code> in Function Parameters</h3>
+
+<p>This is where <code>const</code> earns its keep in everyday C. Marking a pointer parameter as <code>const</code> tells callers: "I will read your data, but I won't modify it."</p>
+
+<pre><code><span class="k">void</span> print_message(<span class="k">const char</span> *msg) {
+    printf(<span class="s">"%s\n"</span>, msg);
+}</code></pre>
+
+<p>The compiler now enforces this — any attempt to write through <code>msg</code> inside the function is a compile error. This is the standard convention for every C library function that takes a read-only string:</p>
+
+<pre><code><span class="k">size_t</span> strlen(<span class="k">const char</span> *s);     <span class="c">// reads only</span>
+<span class="k">int</span>    strcmp(<span class="k">const char</span> *a, <span class="k">const char</span> *b); <span class="c">// both read-only</span>
+<span class="k">char</span>  *strcpy(<span class="k">char</span> *dest, <span class="k">const char</span> *src); <span class="c">// dest writable, src read-only</span></code></pre>
+
+<div class="callout ok">
+  <span class="h">Rule of thumb</span>
+  In function parameters: <strong>input is <code>const</code>, output is not</strong>. If a pointer is input-only, mark it <code>const</code>. It catches bugs, enables compiler optimisations, and documents intent.
+</div>
+
+<h3><code>const</code> with Return Types</h3>
+
+<p>You can also mark a return value as <code>const</code> — less common, but useful when you want to prevent the caller from modifying the returned data:</p>
+
+<pre><code><span class="k">const char</span> *get_error_message(<span class="k">void</span>) {
+    <span class="k">return</span> <span class="s">"Something went wrong"</span>;
+}</code></pre>
+
+<p>Now the caller gets a <code>const char *</code> — they can read the message but can't modify it.</p>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+
+<h2>Tiny Code: <code>const</code> Demo</h2>
+
+<p>Here's the book's example showing all the pieces together:</p>
+
+<pre><code><span class="preproc">#include &lt;stdio.h&gt;</span>
+
+<span class="k">void</span> show(<span class="k">const int</span> *ptr) {
+    <span class="c">// *ptr = 10;  // ❌ not allowed</span>
+    printf(<span class="s">"Value: %d\n"</span>, *ptr);
+}
+
+<span class="k">int</span> main(<span class="k">void</span>) {
+    <span class="k">int</span> num = <span class="s">5</span>;
+    <span class="k">const int</span> *p = &amp;num;
+    <span class="k">int</span> *<span class="k">const</span> q = &amp;num;
+
+    printf(<span class="s">"num = %d\n"</span>, num);
+    <span class="c">// *p = 10;   // ❌ cannot modify through const pointer</span>
+
+    *q = <span class="s">15</span>;         <span class="c">// ✅ data modifiable through q</span>
+    printf(<span class="s">"num after q change = %d\n"</span>, num);
+
+    show(&amp;num);      <span class="c">// ✅ function accepts const pointer</span>
+    <span class="k">return</span> <span class="s">0</span>;
+}</code></pre>
+
+<p>Output:</p>
+<pre><code>num = 5
+num after q change = 15
+Value: 15</code></pre>
+
+<p>The key thing to notice: <code>p</code> and <code>q</code> point to the same <code>num</code>, but <code>p</code> can't modify it while <code>q</code> can. The restriction is on the <strong>pointer variable</strong>, not on the memory itself.</p>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+
+<h2>The <code>volatile</code> Qualifier</h2>
+
+<p><code>volatile</code> tells the compiler: <strong>this variable can change at any time, even if your code doesn't modify it</strong>. This prevents the compiler from optimising out reads and writes — every access must go to real memory.</p>
+
+<p>Without <code>volatile</code>, the compiler assumes a variable only changes when your code explicitly changes it. This lets it do clever optimisations — caching values in registers, eliminating "unnecessary" reads, removing entire loops. But those optimisations break correctness when the value can change behind the compiler's back.</p>
+
+<h3>When to use <code>volatile</code></h3>
+
+<ul>
+  <li><strong>Hardware registers</strong> — memory-mapped I/O where a register's bits change due to external events.</li>
+  <li><strong>Variables modified by a signal handler or another thread</strong> — your code reads, but something else writes.</li>
+  <li><strong>Any value that must be re-read from memory each time</strong> — you need the actual current value, not a cached copy.</li>
+</ul>
+
+<h3>Example: polling a sensor</h3>
+
+<pre><code><span class="k">volatile int</span> sensor_value;
+
+<span class="k">while</span> (sensor_value &lt; <span class="s">100</span>) {
+    <span class="c">// wait for sensor to reach threshold</span>
+}</code></pre>
+
+<p>Without <code>volatile</code>, the compiler might optimise this loop away entirely — it sees <code>sensor_value</code> never changes in the loop body, so it reads it once, compares to 100, and if it's below, loops forever (or eliminates the check entirely). With <code>volatile</code>, each iteration does a real memory read, so changes from external hardware are visible.</p>
+
+<h3>See it for yourself: with and without <code>-O2</code></h3>
+
+<p>This is Exercise 2 from the book. Write two programs — one without <code>volatile</code>, one with — and compare the generated assembly:</p>
+
+<p><strong>Without volatile</strong> — at <code>-O2</code>, the compiler pre-computes the final value:</p>
+<div class="asm">
+<span class="c">;; ex21.s — int counter; no volatile</span>
+<span class="insn">mov</span> <span class="reg">esi</span>, <span class="num">10000000</span>   <span class="c">; pre-computed final value</span>
+<span class="insn">call</span> printf         <span class="c">; the entire loop is GONE</span>
+</div>
+
+<p><strong>With volatile</strong> — the loop stays, with real memory round-trips:</p>
+<div class="asm">
+<span class="c">;; ex22.s — volatile int counter</span>
+.L3:
+<span class="insn">mov</span> <span class="reg">eax</span>, <span class="reg">DWORD PTR</span> counter[<span class="reg">rip</span>]  <span class="c">; real read from memory</span>
+<span class="insn">inc</span> <span class="reg">eax</span>
+<span class="insn">mov</span> <span class="reg">DWORD PTR</span> counter[<span class="reg">rip</span>], <span class="reg">eax</span>  <span class="c">; real write to memory</span>
+<span class="insn">cmp</span> <span class="reg">eax</span>, <span class="num">9999999</span>
+<span class="insn">jle</span> .L3
+</div>
+
+<div class="callout principle">
+  <span class="h">What <code>volatile</code> does and does not do</span>
+  <code>volatile</code> is <strong>not</strong> thread synchronisation. It does not make operations atomic. It does not guarantee ordering between different variables. It only guarantees: <em>every read and write in your code actually happens, in the order you wrote them, to real memory.</em><br><br>
+  For atomicity or thread safety, you need <code>stdatomic.h</code> or OS primitives (mutex, etc.).
+</div>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+
+<h2>Combining <code>const</code> and <code>volatile</code></h2>
+
+<p>These two look like they contradict each other — <code>const</code> means "don't change it," <code>volatile</code> means "it might change at any time." But they target <strong>different actors</strong>:</p>
+
+<table>
+  <tr><th>Qualifier</th><th>What it says</th><th>To whom?</th></tr>
+  <tr><td><code>const</code></td><td><em>Your code</em> must not modify this.</td><td>The compiler (enforcement + optimisation)</td></tr>
+  <tr><td><code>volatile</code></td><td><em>Something else</em> might modify this — re-read from memory each time.</td><td>The compiler (optimisation blocker)</td></tr>
+</table>
+
+<p>They can coexist because they solve different problems. <code>volatile</code> says: "something outside this code (hardware, another thread) might change this value." <code>const</code> says: "your code must not change it."</p>
+
+<pre><code><span class="k">const volatile int</span> status_register = <span class="s">0x1234</span>;
+</code></pre>
+
+<p>This is routine in <strong>embedded systems</strong> — a hardware status register that your code can read to check a flag, but writing to it would trigger hardware behaviour (or be silently ignored).</p>
+
+<div class="callout principle">
+  <span class="h">Memory for the model</span>
+  <code>const volatile</code> is not a contradiction: <code>const</code> blocks <strong>you</strong>, not the universe. The universe (hardware, another thread) can change it all it wants. You just can't.
+</div>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+
+<h2>Why It Matters</h2>
+
+<ul>
+  <li><strong><code>const</code> improves safety and clarity.</strong> It makes interfaces self-documenting and helps the compiler catch mistakes at build time instead of runtime.</li>
+  <li><strong><code>volatile</code> preserves correctness</strong> in concurrent or hardware-driven systems where the compiler would otherwise optimise away essential reads and writes.</li>
+  <li><strong>Together</strong> they let you balance optimisation with precision — the critical insight needed for low-level C programming.</li>
+</ul>
+
+<p>Misuse or forgetfulness:</p>
+<ul>
+  <li>Skip <code>const</code> → risk accidental modification, lose compiler-enforced documentation, can't safely pass string literals.</li>
+  <li>Skip <code>volatile</code> → risk the compiler removing critical reads/writes, causing bugs that only appear with optimisations enabled.</li>
+</ul>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+
+<h2>Try It Yourself — Exercises from the Book (p. 93)</h2>
+
+<p>These exercises are designed to be <strong>run as code</strong> — each one is a short program that demonstrates a specific behaviour. Try each one in order.</p>
+
+<h3>Exercise 1 — Modifying a <code>const int</code> through a pointer</h3>
+
+<pre><code><span class="c">// ex01_const_through_pointer.c</span>
+<span class="preproc">#include &lt;stdio.h&gt;</span>
+
+<span class="k">int</span> main(<span class="k">void</span>) {
+    <span class="k">const int</span> x = <span class="s">10</span>;
+    <span class="k">int</span> *p = &amp;x;  <span class="c">// 🟡 compiler warning: discards const qualifier</span>
+    *p = <span class="s">20</span>;      <span class="c">// ❌ undefined behaviour — modifying a const object</span>
+    printf(<span class="s">"%d\n"</span>, x);
+    <span class="k">return</span> <span class="s">0</span>;
+}</code></pre>
+
+<p>Compile with <code>gcc -Wall -Wextra</code>. What warnings do you get?</p>
+
+<div class="quiz">
+  <h3>💡 What's happening here?</h3>
+  <details><summary>Show explanation</summary>
+  The compiler warns because <code>int *p = &amp;x</code> discards the <code>const</code> qualifier — you're pointing a non-const pointer at const data. Even if the assignment <code>*p = 20</code> appears to work (it might, or might not), this is <strong>undefined behaviour</strong>. The compiler is allowed to put <code>x</code> in read-only memory, and writing through <code>p</code> would crash.
+  </details>
+</div>
+
+<h3>Exercise 2 — <code>volatile</code> and assembly comparison</h3>
+
+<p>Write two programs:</p>
+
+<pre><code><span class="c">// ex02a_no_volatile.c</span>
+<span class="preproc">#include &lt;stdio.h&gt;</span>
+<span class="k">int</span> main(<span class="k">void</span>) {
+    <span class="k">int</span> counter = <span class="s">0</span>;
+    <span class="k">for</span> (<span class="k">int</span> i = <span class="s">0</span>; i &lt; <span class="s">10000000</span>; i++)
+        counter++;
+    printf(<span class="s">"%d\n"</span>, counter);
+    <span class="k">return</span> <span class="s">0</span>;
+}</code></pre>
+
+<pre><code><span class="c">// ex02b_volatile.c</span>
+<span class="preproc">#include &lt;stdio.h&gt;</span>
+<span class="k">int</span> main(<span class="k">void</span>) {
+    <span class="k">volatile int</span> counter = <span class="s">0</span>;
+    <span class="k">for</span> (<span class="k">int</span> i = <span class="s">0</span>; i &lt; <span class="s">10000000</span>; i++)
+        counter++;
+    printf(<span class="s">"%d\n"</span>, counter);
+    <span class="k">return</span> <span class="s">0</span>;
+}</code></pre>
+
+<p>Compile each with <code>gcc -O2 -S</code> and inspect the assembly:</p>
+<pre><code>gcc -O2 -S ex02a_no_volatile.c -o ex02a.s
+gcc -O2 -S ex02b_volatile.c -o ex02b.s</code></pre>
+
+<p>The non-<code>volatile</code> version will likely have its entire loop eliminated — the compiler pre-computes the final value and passes it directly to <code>printf</code>. The <code>volatile</code> version retains the full loop with real memory round-trips per iteration.</p>
+
+<h3>Exercise 3 — <code>const char *msg</code> function parameter</h3>
+
+<pre><code><span class="preproc">#include &lt;stdio.h&gt;</span>
+
+<span class="k">void</span> greet(<span class="k">const char</span> *msg) {
+    msg[<span class="s">0</span>] = <span class="s">'X'</span>;   <span class="c">// ❌ try to modify</span>
+    printf(<span class="s">"%s\n"</span>, msg);
+}
+
+<span class="k">int</span> main(<span class="k">void</span>) {
+    greet(<span class="s">"hello"</span>);
+    <span class="k">return</span> <span class="s">0</span>;
+}</code></pre>
+
+<p>Compile. The compiler should produce an error like <em>"assignment of read-only location"</em> or <em>"discards qualifiers"</em>. Remove the offending line and compile again.</p>
+
+<h3>Exercise 4 — <code>const int *p</code> vs <code>int *const p</code></h3>
+
+<pre><code><span class="preproc">#include &lt;stdio.h&gt;</span>
+
+<span class="k">int</span> main(<span class="k">void</span>) {
+    <span class="k">int</span> value = <span class="s">42</span>;
+    <span class="k">int</span> other = <span class="s">99</span>;
+
+    <span class="c">// const int *p — data is locked</span>
+    <span class="k">const int</span> *p = &amp;value;
+    <span class="c">// *p = 100;         // uncomment — compile error?</span>
+    p = &amp;other;            <span class="c">// allowed — pointer can move</span>
+
+    <span class="c">// int *const q — pointer is locked</span>
+    <span class="k">int</span> *<span class="k">const</span> q = &amp;value;
+    *q = <span class="s">100</span>;              <span class="c">// allowed — data is writable</span>
+    <span class="c">// q = &amp;other;        // uncomment — compile error?</span>
+
+    <span class="c">// const int *const r — both locked</span>
+    <span class="k">const int</span> *<span class="k">const</span> r = &amp;value;
+    <span class="c">// *r = 200;          // uncomment — compile error?</span>
+    <span class="c">// r = &amp;other;        // uncomment — compile error?</span>
+
+    <span class="k">return</span> <span class="s">0</span>;
+}</code></pre>
+
+<p>Uncomment each line one at a time. Which compile? Which don't?</p>
+
+<h3>Exercise 5 — <code>const volatile int flag</code></h3>
+
+<pre><code><span class="preproc">#include &lt;stdio.h&gt;</span>
+
+<span class="k">const volatile int</span> flag = <span class="s">0x1234</span>;
+
+<span class="k">int</span> main(<span class="k">void</span>) {
+    <span class="k">for</span> (<span class="k">int</span> i = <span class="s">0</span>; i &lt; <span class="s">5</span>; i++)
+        printf(<span class="s">"flag = %d\n"</span>, flag);
+
+    <span class="c">// flag = 99;   // uncomment — compile error?</span>
+
+    <span class="k">return</span> <span class="s">0</span>;
+}</code></pre>
+
+<p>Two facts in one program: <code>volatile</code> forces a memory read each loop iteration (though the value doesn't change here, the compiler can't cache it). <code>const</code> prevents you from writing to <code>flag</code>.</p>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+
+<h2>Check yourself</h2>
+
+<div class="quiz">
+  <h3>① What does <code>const int *p</code> lock?</h3>
+  <details><summary>Show answer</summary>
+  The <strong>data</strong> — <code>*p</code> is read-only. The pointer itself can be reassigned. Read: "p is a pointer to a constant int."
+  </details>
+</div>
+
+<div class="quiz">
+  <h3>② What does <code>int * const p</code> lock?</h3>
+  <details><summary>Show answer</summary>
+  The <strong>pointer</strong> — <code>p</code> cannot point elsewhere. The data it points at is writable. Read: "p is a constant pointer to an int."
+  </details>
+</div>
+
+<div class="quiz">
+  <h3>③ What is the difference between <code>const</code> and <code>volatile</code>?</h3>
+  <details><summary>Show answer</summary>
+  <code>const</code> prevents <em>your code</em> from modifying a variable. <code>volatile</code> prevents the <em>compiler</em> from optimising away reads/writes, because something outside your code might change the value.
+  </details>
+</div>
+
+<div class="quiz">
+  <h3>④ How can <code>const</code> and <code>volatile</code> coexist on the same variable?</h3>
+  <details><summary>Show answer</summary>
+  Because they restrict <strong>different actors</strong>. <code>const</code> says <em>you</em> can't write. <code>volatile</code> says the <em>compiler</em> must re-read every time. Something else (hardware, another thread) can change the value — you just can't.
+  </details>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+
+<h2>What you can now do</h2>
+
+<div class="callout ok">
+  <span class="h">After this lesson</span>
+  <ul>
+    <li>Read any <code>const</code> pointer declaration and immediately know what's locked — using the two-question test.</li>
+    <li>Use <code>const char *</code> on function parameters as a compiler-enforced seatbelt for read-only input.</li>
+    <li>Explain what <code>volatile</code> does and when it's necessary (hardware, signal handlers, any value that changes outside your code).</li>
+    <li>Understand that <code>const volatile</code> is not a contradiction — <code>const</code> locks <em>your</em> writes, <code>volatile</code> forces re-reads because <em>something else</em> might write.</li>
+    <li>Generate and read assembly output (<code>gcc -O2 -S</code>) to see the difference <code>volatile</code> makes.</li>
+  </ul>
+</div>
+
+<div class="ask">
+  <strong>Questions? Ask your agent.</strong>
+  Anything murky — why <code>volatile</code> doesn't make things atomic, how <code>const</code> interacts with <code>malloc</code>, when you'd use <code>const volatile</code> in practice — type it and we'll dig in.
+</div>
+
+<div class="cite">
+  <strong>Sources &amp; further reading</strong><br>
+  · <em>A Little Book of C</em>, Chapter 27 (pp. 89–92) — const, volatile, and the "Try It Yourself" exercises.<br>
+  · <a href="../lessons/0003-const-qualifier-matrix.html">Lesson 3 — The const Matrix</a> — the full const-on-pointers taxonomy with quizzes.<br>
+  · <a href="https://beej.us/guide/bgc/html/split/pointers.html#pointers-to-const">Beej's Guide — const pointers</a><br>
+  · <a href="https://en.cppreference.com/w/c/language/const">cppreference — const qualifier</a> · <a href="https://en.cppreference.com/w/c/language/volatile">cppreference — volatile</a><br>
+  · <a href="https://blog.llvm.org/2011/05/what-every-c-programmer-should-know_14.html">LLVM Blog: What Every C Programmer Should Know About Undefined Behavior</a> (#2 discusses volatile)
+</div>
+
+</body>
+</html>

@@ -79,6 +79,7 @@
   }
   .quiz h3 { color: var(--ink); margin-top: 0; }
   details {
+    color: var(--ink);
     margin-top: 0.7rem;
     padding: 0.7rem 0.95rem;
     background: var(--ok-soft);
@@ -344,7 +345,7 @@ buf = bigger;   <span class="c">// now buf points at 200 bytes</span></code></pr
   <h3>① What's wrong with this?</h3>
   <pre><code>char *s = malloc(6);
 strcpy(s, "Hello");
-printf("%s\n", s);</code>
+printf("%s\n", s);</code></pre>
   <details><summary>Show answer</summary>
   Two things. <strong>First:</strong> no <code>#include &lt;stdlib.h&gt;</code> — the compiler may not see <code>malloc</code>'s declaration, defaulting to assuming it returns <code>int</code>, which will corrupt the pointer on 64-bit systems. <strong>Second:</strong> no <code>NULL</code> check — if <code>malloc</code> fails, <code>strcpy</code> writes to address 0. Both are real bugs, even if they don't crash on your machine today.
   </details>
