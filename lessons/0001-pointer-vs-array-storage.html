@@ -158,8 +158,8 @@
   <p class="lede">Your <code>scanf</code> crashed. Your <code>strcat</code> quietly overwrote memory. They look like two different bugs. They're the same bug.</p>
 </header>
 
-<h2>The bug in your own code</h2>
-<p>You wrote this in <code>exercise_concatinate_inputs.c</code>:</p>
+<h2>The bug</h2>
+<p>Consider this classic buggy program:</p>
 
 <div class="yourcode">
 <pre><code><span class="k">char</span> *s1;
@@ -269,13 +269,13 @@ strcat(a, b);                   <span class="good">// safe: a has 20 bytes</span
 <div class="quiz">
   <h3>④ <code>int n = 5; int *q = &amp;n; *q = 99;</code></h3>
   <details><summary>Show answer</summary>
-  <strong>Safe.</strong> <code>n</code> is a real <code>int</code> on the stack. <code>q</code> points at it. Writing through <code>q</code> writes to <code>n</code>. Both conditions met: storage exists, and it's big enough (one <code>int</code>). This is the legitimate use of a pointer — you already do this correctly in <code>recall.c</code>.
+  <strong>Safe.</strong> <code>n</code> is a real <code>int</code> on the stack. <code>q</code> points at it. Writing through <code>q</code> writes to <code>n</code>. Both conditions met: storage exists, and it's big enough (one <code>int</code>). This is the legitimate use of a pointer — the everyday case.
   </details>
 </div>
 
 <div class="task">
-  <h3>🛠️ Hands-on — fix your own concatenate exercise</h3>
-  <p>Open <code>exercise_concatinate_inputs.c</code> and rewrite it so it:</p>
+  <h3>🛠️ Hands-on — fix the concatenate program</h3>
+  <p>Rewrite the buggy program above so it:</p>
   <ol class="steps">
     <li>Declares two <strong>buffers</strong> large enough (e.g. <code>char s1[100]; char s2[100];</code>).</li>
     <li>Reads input with the <strong>width-capped</strong> <code>scanf("%99s", ...)</code>.</li>

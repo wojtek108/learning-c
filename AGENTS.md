@@ -1,6 +1,6 @@
 # Teaching Workspace — Approach 2
 
-This directory is governed by the **`teach` skill** (pi coding agent skill). It is a self-contained, standalone learning track.
+This directory is governed by the **`/teach` skill by Matt Peacock** (pi coding agent skill). It is a self-contained, standalone learning track.
 
 ## Core Separation
 

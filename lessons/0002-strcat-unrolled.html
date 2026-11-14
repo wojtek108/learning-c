@@ -273,7 +273,7 @@ index:  0  1  2  3  4  5  6  7  8  9  10                              19
   <li><strong>Does <code>dest</code> have real storage?</strong> ✅ <code>char dest[20]</code> — 20 real bytes on the stack.</li>
   <li><strong>Big enough?</strong> <code>"Hello"</code> (5) + <code>"World"</code> (5) + <code>'\0'</code> (1) = <strong>11 ≤ 20</strong>. ✅</li>
 </ol>
-<p>This is why your <code>exercise_concatinate_inputs.c</code> crashed and this doesn't. Same operation, same idiom — the only difference is whether real, correctly-sized storage backs the write pointer. The principle is doing real work for you now.</p>
+<p>This is why an uninitialized-pointer <code>strcat</code> crashes and a correctly-sized-buffer version doesn't. Same operation, same idiom — the only difference is whether real, correctly-sized storage backs the write pointer. The principle is doing real work for you now.</p>
 
 <h2>Check yourself</h2>
 
