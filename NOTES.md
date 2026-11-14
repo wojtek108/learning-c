@@ -1,7 +1,7 @@
 # Notes
 
 ## Workspace layout
-- Teaching workspace lives at `a-little-book-of-c/teaching_C_workspace/`. All `lessons/`, `reference/`, `learning-records/`, `MISSION.md`, `RESOURCES.md`, and this file live here.
+- Teaching workspace lives at `007_C/teach_skill_C_workspace/`. All `lessons/`, `reference/`, `learning-records/`, `MISSION.md`, `RESOURCES.md`, and this file live here.
 - **Source code under study** lives one directory up, at `../arrays/` (relative to this workspace) — the user's `.c` files and `common-pitfalls.md`. Lessons cite these by filename only (e.g. "your `exercise_concatinate_inputs.c`"); resolve them under `../arrays/`.
 
 ## User
