@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 9 — Function Pointers and Callbacks</title>
+<style>
+  :root {
+    --ink: #1f2933;
+    --muted: #5b6770;
+    --paper: #fbfaf7;
+    --rule: #e3ddd2;
+    --accent: #0f766e;
+    --accent-soft: #e6f2f0;
+    --danger: #9b1c1c;
+    --danger-soft: #fbe8e8;
+    --ok: #1f6f3f;
+    --ok-soft: #e3f3ea;
+    --code-bg: #f4f1ea;
+    --warn: #9a6700;
+    --warn-soft: #fdf3df;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 16px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--paper);
+    line-height: 1.6;
+    margin: 0 auto;
+    padding: 2.5rem clamp(1rem, 5vw, 4rem);
+    max-width: 820px;
+  }
+  .meta { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.3rem; }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.9rem; margin: 0; line-height: 1.2; letter-spacing: -0.015em; }
+  .lede { font-size: 1.1rem; color: var(--muted); margin: 0.8rem 0 0; }
+  h2 { font-size: 1.3rem; margin: 2.4rem 0 0.6rem; }
+  h3 { font-size: 1.05rem; margin: 1.6rem 0 0.4rem; color: var(--accent); }
+  p { margin: 0.7rem 0; }
+  code, pre {
+    font-family: "JetBrains Mono", "SF Mono", "Fira Code", Consolas, Menlo, monospace;
+    font-size: 0.86rem;
+  }
+  code { background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 3px; }
+  pre {
+    background: #263238;
+    color: #eceff1;
+    padding: 0.95rem 1.1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    line-height: 1.5;
+    font-size: 0.84rem;
+  }
+  pre code { background: none; padding: 0; color: inherit; }
+  pre .c { color: #8aa0a6; font-style: italic; }
+  pre .bad { color: #ff8a80; }
+  pre .good { color: #b9f6ca; }
+  pre .k { color: #ffccbc; }
+  pre .s { color: #fff59d; }
+  pre .err { color: #ff5252; font-weight: 700; }
+  pre .dim { color: #677a82; }
+  .callout {
+    padding: 0.95rem 1.15rem;
+    border-radius: 6px;
+    margin: 1.2rem 0;
+    border-left: 4px solid;
+  }
+  .callout .h { font-weight: 700; display: block; margin-bottom: 0.2rem; }
+  .principle { background: var(--accent-soft); border-color: var(--accent); }
+  .danger { background: var(--danger-soft); border-color: var(--danger); }
+  .warn { background: var(--warn-soft); border-color: var(--warn); }
+  .ok { background: var(--ok-soft); border-color: var(--ok); }
+  .quiz {
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 1.2rem 1.3rem;
+    margin: 1.5rem 0;
+  }
+  .quiz h3 { color: var(--ink); margin-top: 0; }
+  details {
+    color: var(--ink);
+    margin-top: 0.7rem;
+    padding: 0.7rem 0.95rem;
+    background: var(--ok-soft);
+    border-radius: 6px;
+    border-left: 3px solid var(--ok);
+  }
+  details summary { cursor: pointer; font-weight: 600; color: var(--ok); }
+  details[open] summary { margin-bottom: 0.5rem; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.2rem 0;
+    font-size: 0.9rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.6rem 0.7rem;
+    border: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  th {
+    background: var(--accent-soft);
+    font-weight: 600;
+    font-size: 0.82rem;
+    letter-spacing: 0.03em;
+  }
+  td:first-child code {
+    background: none;
+    font-weight: 700;
+  }
+  .tag { display: inline-block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 0.1em 0.5em; border-radius: 3px; vertical-align: middle; }
+  .tag.locked { background: var(--danger-soft); color: var(--danger); }
+  .tag.free { background: var(--ok-soft); color: var(--ok); }
+  .tag.neutral { background: var(--code-bg); color: var(--muted); }
+  .asm {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 0.95rem 1.1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    line-height: 1.5;
+    font-size: 0.8rem;
+  }
+  .asm .insn { color: #569cd6; }
+  .asm .reg { color: #9cdcfe; }
+  .asm .num { color: #b5cea8; }
+  .asm .c { color: #6a9955; font-style: italic; }
+  .ask {
+    background: var(--accent);
+    color: #fff;
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    margin-top: 2rem;
+  }
+  .ask code { background: rgba(0,0,0,0.15); color: #fff; }
+  .ask strong { display: block; margin-bottom: 0.3rem; }
+  .cite { font-size: 0.85rem; color: var(--muted); border-top: 1px solid var(--rule); margin-top: 2.5rem; padding-top: 1rem; }
+  a { color: var(--accent); }
+  .nav { font-size: 0.85rem; margin-bottom: 1.5rem; }
+  .nav a { color: var(--muted); text-decoration: none; }
+  @media print {
+    body { padding: 1rem; max-width: 100%; }
+    pre { white-space: pre-wrap; word-break: break-word; }
+    details > *:not(summary) { display: block !important; }
+    .ask, .task { background: none; border: 1px solid var(--ink); color: var(--ink); }
+  }
+</style>
+</head>
+<body>
+
+<div class="nav">📚 <a href="../index.html">All Lessons</a> · ↩ <a href="../lessons/0008-const-and-volatile.html">Lesson 8</a> · 📋 <a href="../reference/function-pointers.html">Reference: Function Pointers</a></div>
+
+<div class="meta">Lesson 9 · ~25 minutes · ties to mission: <em>understand how the machine works under the hood</em></div>
+
+<header>
+  <h1>Function Pointers and Callbacks</h1>
+  <p class="lede">So far every pointer you've met pointed at <strong>data</strong>. Here's the twist: functions live in memory too, and they have addresses. A <strong>function pointer</strong> stores the address of a function, so you can call it indirectly — and pass it around like a value. This powers callbacks, dispatch tables, and <code>qsort()</code>.</p>
+</header>
+
+<p class="meta">Based on <em>A Little Book of C</em>, Chapter 28 (pp. 93–96)</p>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+
+<h2>Functions have addresses</h2>
+
+<p>When your program is loaded, its machine code lives in a region of memory called the <strong>text segment</strong> (also: code segment). Every function occupies a block of bytes there, and that block has a start address — just like every <code>int</code> on the stack or heap has an address.</p>
+
+<p>Your memory map now has four regions:</p>
+
+<table>
+  <tr><th>Region</th><th>What lives there</th><th>Do you take its address?</th></tr>
+  <tr><td><code>text</code> (code)</td><td>Machine instructions — your functions</td><td>Yes! That's a function pointer</td></tr>
+  <tr><td><code>static</code></td><td>Globals, <code>static</code> variables</td><td>Yes, like any variable</td></tr>
+  <tr><td><code>stack</code></td><td>Local variables, parameters</td><td>Yes (<code>&amp;x</code>) — but beware lifetimes</td></tr>
+  <tr><td><code>heap</code></td><td><code>malloc</code>'d memory</td><td>Yes — the returned pointer itself</td></tr>
+</table>
+
+<p>The bare name of a function <em>is</em> its address, in most contexts. This is exactly the same "decay" you already know from arrays:</p>
+
+<pre><code><span class="k">int</span> add(<span class="k">int</span> a, <span class="k">int</span> b) { <span class="k">return</span> a + b; }
+
+<span class="c">// these two are the same value — the address of add's code</span>
+add        <span class="c">// decays to a pointer, like an array name</span>
+&amp;add       <span class="c">// explicit address — identical result for functions</span></code></pre>
+
+<div class="callout principle">
+  <span class="h">The big idea</span>
+  A function pointer is just <strong>an address of code</strong> — the same idea as a data pointer, pointing into a different region of memory. Calling through it is an <strong>indirect call</strong>: the CPU jumps to whatever address the pointer holds. That indirection is what buys you runtime flexibility.
+</div>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+
+<h2>Declaring a function pointer — the syntax</h2>
+
+<p>The declaration mirrors <em>how you use it</em>. To call the pointed-to function you write <code>(*fp)(2, 3)</code> — dereference <code>fp</code> to get the function, then call it. So the declaration looks like that, with <code>fp</code> replacing the name:</p>
+
+<pre><code><span class="k">int</span> (*fp)(<span class="k">int</span>, <span class="k">int</span>);   <span class="c">// fp is a pointer to a function taking (int,int), returning int</span></code></pre>
+
+<p>Read it right-to-left: "<code>fp</code> is a pointer (<code>*</code>) to a function (<code>(...)</code>) taking two <code>int</code>s, returning <code>int</code>."</p>
+
+<div class="callout danger">
+  <span class="h">The parentheses are mandatory</span>
+  <code>int *fp(int, int)</code> — no parentheses — means something completely different: <strong>a function named <code>fp</code> that returns <code>int *</code></strong>. The parens around <code>*fp</code> bind the <code>*</code> to the name, not to the return type.
+</div>
+
+<p>Assigning and calling:</p>
+
+<pre><code><span class="k">int</span> (*fp)(<span class="k">int</span>, <span class="k">int</span>) = add;   <span class="c">// point at add's code</span>
+
+<span class="k">int</span> result = fp(<span class="s">2</span>, <span class="s">3</span>);        <span class="c">// call through the pointer — same as add(2, 3)</span>
+<span class="k">int</span> also  = (*fp)(<span class="s">2</span>, <span class="s">3</span>);     <span class="c">// explicit dereference — identical result</span></code></pre>
+
+<p>Both call forms work; <code>fp(2, 3)</code> is the idiomatic one.</p>
+
+<h3>The <code>typedef</code> shortcut</h3>
+
+<p>The full type name is verbose. Real code usually tames it with <code>typedef</code>:</p>
+
+<pre><code><span class="k">typedef int</span> (*binop)(<span class="k">int</span>, <span class="k">int</span>);   <span class="c">// "binop" = pointer to a 2-int function</span>
+
+binop f = add;   <span class="c">// now it reads like an ordinary type</span>
+<span class="k">int</span> r = f(<span class="s">4</span>, <span class="s">2</span>);</code></pre>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+
+<h2>Tiny Code: the book's demo</h2>
+
+<p>Three arithmetic functions, one <code>operate</code> that takes a function pointer as a parameter:</p>
+
+<pre><code><span class="preproc">#include &lt;stdio.h&gt;</span>
+
+<span class="k">int</span> add(<span class="k">int</span> a, <span class="k">int</span> b) { <span class="k">return</span> a + b; }
+<span class="k">int</span> sub(<span class="k">int</span> a, <span class="k">int</span> b) { <span class="k">return</span> a - b; }
+<span class="k">int</span> mul(<span class="k">int</span> a, <span class="k">int</span> b) { <span class="k">return</span> a * b; }
+
+<span class="k">void</span> operate(<span class="k">int</span> x, <span class="k">int</span> y, <span class="k">int</span> (*op)(<span class="k">int</span>, <span class="k">int</span>)) {
+    printf(<span class="s">"Result: %d\n"</span>, op(x, y));   <span class="c">// call through the pointer</span>
+}
+
+<span class="k">int</span> main(<span class="k">void</span>) {
+    <span class="k">int</span> (*f)(<span class="k">int</span>, <span class="k">int</span>);      <span class="c">// declaration</span>
+    f = add;
+    printf(<span class="s">"Add via pointer: %d\n"</span>, f(<span class="s">5</span>, <span class="s">3</span>));
+    f = sub;
+    printf(<span class="s">"Subtract via pointer: %d\n"</span>, f(<span class="s">5</span>, <span class="s">3</span>));
+
+    printf(<span class="s">"\nUsing callback function:\n"</span>);
+    operate(<span class="s">4</span>, <span class="s">6</span>, mul);   <span class="c">// pass the function itself as an argument</span>
+    <span class="k">return</span> <span class="s">0</span>;
+}</code></pre>
+
+<p>Output:</p>
+<pre><code>Add via pointer: 8
+Subtract via pointer: 2
+
+Using callback function:
+Result: 24</code></pre>
+
+<p>Notice what happened: <code>operate</code> never mentions <code>add</code>, <code>sub</code>, or <code>mul</code> by name. It receives <em>whatever function you hand it</em> and calls it. That separation is the whole point of callbacks.</p>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+
+<h2>Arrays of function pointers — dispatch tables</h2>
+
+<p>Just like an array of <code>int *</code>, you can have an array of function pointers. The syntax reads "array of 3 pointers to functions":</p>
+
+<pre><code><span class="k">int</span> (*ops[<span class="s">3</span>])(<span class="k">int</span>, <span class="k">int</span>) = {add, sub, mul};
+
+<span class="k">for</span> (<span class="k">int</span> i = <span class="s">0</span>; i &lt; <span class="s">3</span>; i++)
+    printf(<span class="s">"ops[%d](4, 2) = %d\n"</span>, i, ops[i](<span class="s">4</span>, <span class="s">2</span>));</code></pre>
+
+<p>Output:</p>
+<pre><code>ops[0](4, 2) = 6
+ops[1](4, 2) = 2
+ops[2](4, 2) = 8</code></pre>
+
+<div class="callout principle">
+  <span class="h">Dispatch tables replace chains of if/switch</span>
+  Instead of <code>if (op == '+') ... else if (op == '-') ...</code>, index into an array: <code>ops[chosen](a, b)</code>. The index becomes the "choice", the array holds the behaviors. This is how interpreters, virtual machines, and command menus are built in C. The book calls these <em>dispatch tables</em>.
+</div>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+
+<h2>Callbacks</h2>
+
+<p>A <strong>callback</strong> is a function pointer you pass into another function, so that the callee can call back into your code at the right moment. The classic shape — a generic "do this to every element" loop:</p>
+
+<pre><code><span class="preproc">#include &lt;stdio.h&gt;</span>
+
+<span class="k">void</span> for_each(<span class="k">int</span> *arr, <span class="k">int</span> n, <span class="k">void</span> (*callback)(<span class="k">int</span>)) {
+    <span class="k">for</span> (<span class="k">int</span> i = <span class="s">0</span>; i &lt; n; i++)
+        callback(arr[i]);   <span class="c">// "call back" into the caller's function</span>
+}
+
+<span class="k">void</span> print_square(<span class="k">int</span> x) {
+    printf(<span class="s">"%d^2 = %d\n"</span>, x, x * x);
+}
+
+<span class="k">int</span> main(<span class="k">void</span>) {
+    <span class="k">int</span> nums[] = {<span class="s">1</span>, <span class="s">2</span>, <span class="s">3</span>, <span class="s">4</span>, <span class="s">5</span>};
+    for_each(nums, <span class="s">5</span>, print_square);   <span class="c">// pass the callback</span>
+    <span class="k">return</span> <span class="s">0</span>;
+}</code></pre>
+
+<p>Output:</p>
+<pre><code>1^2 = 1
+2^2 = 4
+3^2 = 9
+4^2 = 16
+5^2 = 25</code></pre>
+
+<p>The loop is written once, forever, and does nothing specific. The <em>behavior</em> — squaring, printing, summing — is supplied by whoever calls it. You can reuse <code>for_each</code> with a different callback and get entirely different behavior with zero changes to the loop.</p>
+
+<div class="callout warn">
+  <span class="h">Direction of control</span>
+  A callback is <strong>inversion of control</strong>: the generic function decides <em>when</em> your code runs; your code decides <em>what</em> it does. Event systems, signal handlers (<code>signal(SIGINT, handler)</code>), GUI button handlers — all this same pattern.
+</div>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+
+<h2>Why It Matters — <code>qsort()</code></h2>
+
+<p>The standard library can't know how to order <em>your</em> types — so <code>qsort()</code> asks <em>you</em> for a comparison function:</p>
+
+<pre><code><span class="k">int</span> compare_desc(<span class="k">const void</span> *a, <span class="k">const void</span> *b) {
+    <span class="k">return</span> *(<span class="k">int</span> *)b - *(<span class="k">int</span> *)a;   <span class="c">// cast void* back, then subtract</span>
+}
+
+<span class="k">int</span> numbers[] = {<span class="s">5</span>, <span class="s">2</span>, <span class="s">9</span>, <span class="s">1</span>, <span class="s">7</span>};
+qsort(numbers, <span class="s">5</span>, <span class="k">sizeof</span>(<span class="k">int</span>), compare_desc);</code></pre>
+
+<p><code>qsort</code>'s signature: <code>void qsort(void *base, size_t nmemb, size_t size, int (*compar)(const void *, const void *))</code>. The <code>const void *</code> parameters are "pointers to anything" — you cast them back to your type inside the comparator. Negative/zero/positive return = a comes before / equal / after b.</p>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+
+<h2>Try It Yourself — Exercises from the Book (p. 96)</h2>
+
+<p>Type these out and compile with <code>gcc -Wall -Wextra</code>. Don't copy-paste — the typing is the retrieval practice.</p>
+
+<h3>Exercise 1 — three functions, one array</h3>
+
+<pre><code><span class="c">// func_ptr_array.c</span>
+<span class="preproc">#include &lt;stdio.h&gt;</span>
+
+<span class="k">int</span> add(<span class="k">int</span> a, <span class="k">int</span> b) { <span class="k">return</span> a + b; }
+<span class="k">int</span> sub(<span class="k">int</span> a, <span class="k">int</span> b) { <span class="k">return</span> a - b; }
+<span class="k">int</span> mul(<span class="k">int</span> a, <span class="k">int</span> b) { <span class="k">return</span> a * b; }
+
+<span class="k">int</span> main(<span class="k">void</span>) {
+    <span class="k">int</span> (*ops[<span class="s">3</span>])(<span class="k">int</span>, <span class="k">int</span>) = {add, sub, mul};
+    <span class="k">for</span> (<span class="k">int</span> i = <span class="s">0</span>; i &lt; <span class="s">3</span>; i++)
+        printf(<span class="s">"%d\n"</span>, ops[i](<span class="s">10</span>, <span class="s">4</span>));
+    <span class="k">return</span> <span class="s">0</span>;
+}</code></pre>
+
+<p>Before you run it: what are the three printed values?</p>
+<div class="quiz">
+  <h3>💡 Answer</h3>
+  <details><summary>Show</summary>
+  <code>14</code>, <code>6</code>, <code>40</code> — add, sub, mul with (10, 4). Same code, three behaviors, selected by index.
+  </details>
+</div>
+
+<h3>Exercise 2 — <code>calculate(a, b, op)</code></h3>
+
+<pre><code><span class="c">// calculate.c</span>
+<span class="preproc">#include &lt;stdio.h&gt;</span>
+
+<span class="k">typedef int</span> (*binop)(<span class="k">int</span>, <span class="k">int</span>);
+
+<span class="k">int</span> add(<span class="k">int</span> a, <span class="k">int</span> b) { <span class="k">return</span> a + b; }
+<span class="k">int</span> sub(<span class="k">int</span> a, <span class="k">int</span> b) { <span class="k">return</span> a - b; }
+<span class="k">int</span> mul(<span class="k">int</span> a, <span class="k">int</span> b) { <span class="k">return</span> a * b; }
+
+<span class="k">int</span> calculate(<span class="k">int</span> a, <span class="k">int</span> b, <span class="k">char</span> op) {
+    binop table[] = {NULL, add, sub, mul};   <span class="c">// index 0 unused; map + - * to 1 2 3</span>
+    <span class="k">if</span> (op == <span class="s">'+'</span>) <span class="k">return</span> table[<span class="s">1</span>](a, b);
+    <span class="k">if</span> (op == <span class="s">'-'</span>) <span class="k">return</span> table[<span class="s">2</span>](a, b);
+    <span class="k">if</span> (op == <span class="s">'*'</span>) <span class="k">return</span> table[<span class="s">3</span>](a, b);
+    <span class="k">return</span> <span class="s">0</span>;   <span class="c">// unknown operator</span>
+}
+
+<span class="k">int</span> main(<span class="k">void</span>) {
+    printf(<span class="s">"%d\n"</span>, calculate(<span class="s">6</span>, <span class="s">2</span>, <span class="s">'+'</span>));
+    printf(<span class="s">"%d\n"</span>, calculate(<span class="s">6</span>, <span class="s">2</span>, <span class="s">'-'</span>));
+    printf(<span class="s">"%d\n"</span>, calculate(<span class="s">6</span>, <span class="s">2</span>, <span class="s">'*'</span>));
+    <span class="k">return</span> <span class="s">0</span>;
+}</code></pre>
+
+<div class="callout ok">
+  <span class="h">A cleaner variant</span>
+  Instead of three <code>if</code>s, index the table directly with arithmetic: <code>table[op - '+']</code> only works if <code>+ - *</code> are adjacent in the character set — they are in ASCII. A lookup table keyed on the operator character is the "no branch" version of this exercise. Try writing that version yourself.
+</div>
+
+<h3>Exercise 3 — callback loop</h3>
+
+<pre><code><span class="c">// callback_loop.c — write this one from scratch using for_each from the lesson</span>
+<span class="preproc">#include &lt;stdio.h&gt;</span>
+
+<span class="k">void</span> for_each(<span class="k">int</span> *arr, <span class="k">int</span> n, <span class="k">void</span> (*cb)(<span class="k">int</span>)) {
+    <span class="k">for</span> (<span class="k">int</span> i = <span class="s">0</span>; i &lt; n; i++)
+        cb(arr[i]);
+}
+
+<span class="c">// Write TWO callbacks and pass each to for_each over the same array:</span>
+<span class="c">//   1. print_twice — prints each element doubled</span>
+<span class="c">//   2. print_even — prints the element only if it's even</span>
+
+<span class="k">int</span> main(<span class="k">void</span>) {
+    <span class="k">int</span> nums[] = {<span class="s">1</span>, <span class="s">2</span>, <span class="s">3</span>, <span class="s">4</span>, <span class="s">5</span>, <span class="s">6</span>};
+    <span class="c">// for_each(nums, 6, print_twice);</span>
+    <span class="c">// for_each(nums, 6, print_even);</span>
+    <span class="k">return</span> <span class="s">0</span>;
+}</code></pre>
+
+<p>Expected output: <code>2 4 6 8 10 12</code>, then <code>2 4 6</code>.</p>
+
+<h3>Exercise 4 — <code>qsort</code> descending</h3>
+
+<p>Sort an <code>int</code> array in <em>descending</em> order using <code>qsort()</code> from <code>&lt;stdlib.h&gt;</code>. Signature reminder: the comparator receives <code>const void *</code> and returns <code>int</code> (negative / zero / positive).</p>
+
+<div class="quiz">
+  <h3>💡 Stuck? Smallest nudge</h3>
+  <details><summary>Show</summary>
+  Swap the roles: <code>return *(int *)b - *(int *)a;</code> — subtracting <code>a</code> from <code>b</code> flips ascending into descending. That's all it takes.
+  </details>
+</div>
+
+<h3>Exercise 5 — a menu system</h3>
+
+<p>Print a menu ("1. Add 2. Sub 3. Mul 4. Quit"), read the user's choice, and dispatch with a function-pointer array instead of a <code>switch</code>. Loop until they choose Quit.</p>
+
+<div class="quiz">
+  <h3>💡 Shape of the solution</h3>
+  <details><summary>Show</summary>
+  <code>binop table[] = {NULL, add, sub, mul};</code> then <code>table[choice](a, b)</code>. Guard <code>choice</code> against 0 and out-of-range before indexing. The menu loop's <code>break</code>/<code>return</code> is the only control flow you need besides the index.
+  </details>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+
+<h2>Check yourself</h2>
+
+<div class="quiz">
+  <h3>① What does <code>int (*fp)(int, int)</code> declare?</h3>
+  <details><summary>Show answer</summary>
+  A <strong>pointer</strong> to a function taking two <code>int</code>s and returning <code>int</code>. The parentheses bind <code>*</code> to the name.
+  </details>
+</div>
+
+<div class="quiz">
+  <h3>② What does <code>int *fp(int, int)</code> declare?</h3>
+  <details><summary>Show answer</summary>
+  A <strong>function</strong> named <code>fp</code> that returns <code>int *</code> — not a function pointer at all. The <code>*</code> belongs to the return type.
+  </details>
+</div>
+
+<div class="quiz">
+  <h3>③ What does the bare name <code>add</code> evaluate to when you assign <code>f = add</code>?</h3>
+  <details><summary>Show answer</summary>
+  The <strong>address of the function's code</strong> in the text segment — the same value as <code>&amp;add</code>. It decays to a pointer, like an array name.
+  </details>
+</div>
+
+<div class="quiz">
+  <h3>④ In <code>for_each(arr, n, print_square)</code>, who decides <em>when</em> and who decides <em>what</em>?</h3>
+  <details><summary>Show answer</summary>
+  <code>for_each</code> decides <strong>when</strong> (once per element); <code>print_square</code> decides <strong>what</strong> (the behavior). That inversion of control is the essence of a callback.
+  </details>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────── -->
+
+<h2>What you can now do</h2>
+
+<div class="callout ok">
+  <span class="h">After this lesson</span>
+  <ul>
+    <li>Read and write function-pointer declarations — and know why the parens matter.</li>
+    <li>Explain that a function pointer is just the address of code in the text segment.</li>
+    <li>Pass a function as an argument (callback) and build dispatch tables with arrays of function pointers.</li>
+    <li>Use <code>qsort()</code> with your own comparator — the standard library's way of asking you for behavior.</li>
+    <li>Replace if/switch chains with index-into-table dispatch.</li>
+  </ul>
+</div>
+
+<div class="ask">
+  <strong>Questions? Ask your agent.</strong>
+  Anything murky — how to read nested declarations, when a callback fires, how <code>typedef</code> interacts with arrays of function pointers, what happens if you call a NULL function pointer — type it and we'll dig in.
+</div>
+
+<div class="cite">
+  <strong>Sources &amp; further reading</strong><br>
+  · <em>A Little Book of C</em>, Chapter 28 (pp. 93–96) — function pointers, dispatch tables, callbacks, and the "Try It Yourself" exercises.<br>
+  · <a href="../reference/function-pointers.html">Reference: Function Pointers</a> — the compressed cheat sheet for this lesson.<br>
+  · <a href="https://beej.us/guide/bgc/html/split/pointers-iii-pointers-to-pointers-and-more.html#pointers-to-functions">Beej's Guide — Pointers to Functions</a> (§23.7)<br>
+  · <a href="https://en.cppreference.com/w/c/algorithm/qsort">cppreference — qsort</a> (exact comparator contract)<br>
+  · <a href="https://en.cppreference.com/w/c/language/operator_other#Function_call">cppreference — the function-call operator</a> (how calls through pointers work)
+</div>
+
+</body>
+</html>

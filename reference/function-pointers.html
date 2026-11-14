@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Function Pointers — Quick Reference</title>
+<style>
+  :root {
+    --ink: #1f2933;
+    --muted: #5b6770;
+    --paper: #fbfaf7;
+    --rule: #e3ddd2;
+    --accent: #0f766e;
+    --accent-soft: #e6f2f0;
+    --danger: #9b1c1c;
+    --danger-soft: #fbe8e8;
+    --ok: #1f6f3f;
+    --ok-soft: #e3f3ea;
+    --code-bg: #f4f1ea;
+    --warn: #9a6700;
+    --warn-soft: #fdf3df;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 16px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--paper);
+    line-height: 1.55;
+    margin: 0;
+    padding: 2.5rem clamp(1rem, 5vw, 4rem);
+    max-width: 880px;
+    margin: 0 auto;
+  }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 0.75rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.6rem; margin: 0; letter-spacing: -0.01em; }
+  header p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.95rem; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.6rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.25rem; }
+  h3 { font-size: 1rem; margin: 1.3rem 0 0.4rem; color: var(--accent); }
+  p { margin: 0.5rem 0; }
+  code, pre {
+    font-family: "JetBrains Mono", "SF Mono", "Fira Code", Consolas, Menlo, monospace;
+    font-size: 0.86rem;
+  }
+  code { background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 3px; }
+  pre {
+    background: #263238;
+    color: #eceff1;
+    padding: 0.85rem 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    border: 1px solid var(--rule);
+    line-height: 1.45;
+  }
+  pre code { background: none; padding: 0; color: inherit; }
+  pre .c { color: #8aa0a6; font-style: italic; }
+  pre .bad { color: #ff8a80; }
+  pre .good { color: #b9f6ca; }
+  pre .k { color: #ffccbc; }
+  pre .s { color: #fff59d; }
+  table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { background: var(--accent-soft); font-weight: 600; }
+  .principle {
+    background: var(--accent-soft);
+    border-left: 4px solid var(--accent);
+    padding: 0.9rem 1.1rem;
+    border-radius: 4px;
+    margin: 1rem 0;
+  }
+  .danger {
+    background: var(--danger-soft);
+    border-left: 4px solid var(--danger);
+    padding: 0.9rem 1.1rem;
+    border-radius: 4px;
+    margin: 1rem 0;
+  }
+  .ok { color: var(--ok); }
+  .bad { color: var(--danger); }
+  .tag { display: inline-block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 0.1em 0.5em; border-radius: 3px; vertical-align: middle; }
+  .tag.safe { background: #d8efe1; color: var(--ok); }
+  .tag.risky { background: var(--danger-soft); color: var(--danger); }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.82rem; }
+  @media print {
+    body { padding: 1.2rem; max-width: 100%; }
+    pre, code { white-space: pre-wrap; word-break: break-word; }
+    a { color: var(--ink); text-decoration: none; }
+  }
+</style>
+</head>
+<div class="nav" style="font-size:0.85rem;margin-bottom:1.5rem;"><a href="../index.html" style="color:var(--muted);text-decoration:none;">📚 All Lessons</a> · <a href="index.html" style="color:var(--muted);text-decoration:none;">📋 Reference index</a></div>
+
+<header>
+  <h1>Function Pointers &amp; Callbacks — Quick Reference</h1>
+  <p>The one-page companion to <a href="../lessons/0009-function-pointers-and-callbacks.html">Lesson 9</a> (book Chapter 28).</p>
+</header>
+
+<div class="principle">
+  <strong>The One Idea.</strong> Functions are code living in the <strong>text segment</strong> of memory; a function pointer stores the <strong>address of that code</strong>. Calling through it is an indirect jump — the same indirection idea as data pointers, aimed at code instead.
+</div>
+
+<h2>Declarations — the parens matter</h2>
+
+<table>
+  <thead><tr><th>Declaration</th><th>Means</th><th>Read (right → left)</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>int (*fp)(int, int);</code></td>
+      <td>A <strong>pointer</strong> to a function taking two <code>int</code>s, returning <code>int</code>.</td>
+      <td>"fp is a pointer to a function(int,int) returning int"</td>
+    </tr>
+    <tr>
+      <td><code>int *fp(int, int);</code></td>
+      <td>A <strong>function</strong> named <code>fp</code> returning <code>int *</code> — <span class="bad">NOT a pointer</span>.</td>
+      <td>"fp is a function(int,int) returning pointer-to-int"</td>
+    </tr>
+    <tr>
+      <td><code>int (*ops[3])(int, int);</code></td>
+      <td>An <strong>array of 3 function pointers</strong> (dispatch table).</td>
+      <td>"ops is an array of 3 pointers to function(int,int) returning int"</td>
+    </tr>
+    <tr>
+      <td><code>typedef int (*binop)(int, int);</code></td>
+      <td>Name the type <code>binop</code> so declarations read simply: <code>binop f;</code></td>
+      <td>—</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Use — assign, call, pass</h2>
+
+<pre><code><span class="k">int</span> (*fp)(<span class="k">int</span>, <span class="k">int</span>);
+fp = add;              <span class="c">// assign: bare name decays, same as &amp;add</span>
+
+<span class="k">int</span> r = fp(<span class="s">2</span>, <span class="s">3</span>);       <span class="c">// call through pointer (idiomatic)</span>
+<span class="k">int</span> s = (*fp)(<span class="s">2</span>, <span class="s">3</span>);   <span class="c">// call, explicit deref — identical</span>
+
+<span class="k">void</span> operate(<span class="k">int</span> x, <span class="k">int</span> y, <span class="k">int</span> (*op)(<span class="k">int</span>, <span class="k">int</span>));
+operate(<span class="s">4</span>, <span class="s">6</span>, mul);    <span class="c">// pass function as argument (callback)</span></code></pre>
+
+<h2>The callback pattern (inversion of control)</h2>
+
+<pre><code><span class="k">void</span> for_each(<span class="k">int</span> *arr, <span class="k">int</span> n, <span class="k">void</span> (*cb)(<span class="k">int</span>)) {
+    <span class="k">for</span> (<span class="k">int</span> i = <span class="s">0</span>; i &lt; n; i++)
+        cb(arr[i]);              <span class="c">// callee decides WHEN; your cb decides WHAT</span>
+}</code></pre>
+
+<p>Generic code is written once; behavior is injected per call. This is how <code>qsort</code>, <code>signal</code>, event loops, and GUI handlers work.</p>
+
+<h2><code>qsort()</code> — the standard-library callback</h2>
+
+<pre><code><span class="k">int</span> cmp(<span class="k">const void</span> *a, <span class="k">const void</span> *b) {
+    <span class="k">return</span> *(<span class="k">int</span> *)a - *(<span class="k">int</span> *)b;   <span class="c">// ascending; swap a/b for descending</span>
+}
+qsort(arr, n, <span class="k">sizeof</span>(arr[<span class="s">0</span>]), cmp);</code></pre>
+
+<p>Comparator contract: return <strong>negative</strong> if <code>a</code> sorts before <code>b</code>, <strong>zero</strong> if equal, <strong>positive</strong> if after. Cast the <code>const void *</code> back to your type first.</p>
+
+<h2>Dispatch tables — replace if/switch with an index</h2>
+
+<pre><code><span class="k">typedef int</span> (*binop)(<span class="k">int</span>, <span class="k">int</span>);
+binop table[] = {NULL, add, sub, mul};   <span class="c">// index 0 = no-op</span>
+
+<span class="k">int</span> result = table[choice](a, b);       <span class="c">// guard choice before indexing!</span></code></pre>
+
+<h2>Pitfalls</h2>
+
+<table>
+  <thead><tr><th>Mistake</th><th>Consequence</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Forgetting the parens: <code>int *fp(int, int)</code></td>
+      <td>Declares a function returning <code>int*</code>, not a pointer. Compiler error when you assign <code>fp = add;</code>.</td>
+    </tr>
+    <tr>
+      <td>Calling a NULL / unassigned function pointer</td>
+      <td><span class="tag risky">CRASH</span> Indirect jump to address 0 — undefined behavior. Always initialize.</td>
+    </tr>
+    <tr>
+      <td>Signature mismatch (wrong arg types/count)</td>
+      <td>UB — the callee reads garbage off the stack. Compiler usually warns; use <code>-Wall -Wextra</code>.</td>
+    </tr>
+    <tr>
+      <td>Indexing a dispatch table out of range</td>
+      <td>Calling whatever garbage address sits in the table. Guard the index first.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>When to reach for it</h2>
+<ul>
+  <li><strong>Callbacks</strong> — generic loops, event handlers, timers.</li>
+  <li><strong>Dispatch tables</strong> — menus, command interpreters, calculators, state machines.</li>
+  <li><strong>Anything the stdlib asks you for behavior</strong> — <code>qsort</code>, <code>bsearch</code>, <code>atexit</code>, <code>signal</code>.</li>
+</ul>
+
+<footer>
+  Companion reference for <em>Lesson 9 — Function Pointers and Callbacks</em> (book Chapter 28, pp. 93–96).
+  See <code>../MISSION.md</code> for learning goals and <code>../learning-records/</code> for progress.
+  Sources: <a href="https://beej.us/guide/bgc/html/split/pointers-iii-pointers-to-pointers-and-more.html#pointers-to-functions">Beej's Guide §23.7</a> · <a href="https://en.cppreference.com/w/c/algorithm/qsort">cppreference — qsort</a> · <a href="https://c-faq.com/">comp.lang.c FAQ</a>
+</footer>
+
+</body>
+</html>
