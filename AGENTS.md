@@ -1,14 +1,14 @@
 # Teaching Workspace — Approach 2
 
-This directory is governed by the **`teach` skill** (pi coding agent skill). It is a separate learning track from the project-root approach defined in `../AGENTS.md`.
+This directory is governed by the **`teach` skill** (pi coding agent skill). It is a separate learning track from the exercise-driven approach used in the `a-little-book-of-c/` project (see that project's `AGENTS.md`).
 
 ## Core Separation
 
-| | Approach 1 (`../AGENTS.md`) | Approach 2 (this file) |
+| | Approach 1 (`a-little-book-of-c/` AGENTS.md) | Approach 2 (this file) |
 |---|---|---|
-| **Output** | User writes code in `../` subdirs. Agent guides, never writes code. Post-session summaries in `../lessons_learned/`. | Agent creates beautiful, self-contained HTML lessons in `./lessons/`. Reference docs in `./reference/`. |
+| **Output** | User writes code in the book project's subdirs. Agent guides, never writes code. Post-session summaries in the project's `_lessons_learned/`. | Agent creates beautiful, self-contained HTML lessons in `./lessons/`. Reference docs in `./reference/`. |
 | **Exercises** | User writes their own exercise code. Agent explains, hints, asks questions. | Exercises appear inside lessons as examples — full solutions shown. The lesson teaches, the user reads and learns. |
-| **Learning records** | `../lessons_learned/` — concept summaries after each session. | `./learning-records/` — captures what the user demonstrated they know. |
+| **Learning records** | Project's `_lessons_learned/` — concept summaries after each session. | `./learning-records/` — captures what the user demonstrated they know. |
 
 ## Structure 
 - `teaching_C_workspace/lessons/` — standalone HTML lesson pages
