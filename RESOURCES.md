@@ -12,7 +12,7 @@ Curated, high-trust sources. Knowledge should be drawn from these, not from para
   Decades-old, veteran-curated answers to classic C gotchas. Use for: null pointers, array/pointer decay, `scanf` pitfalls, the questions every C learner eventually asks.
 - ["What Every C Programmer Should Know About Undefined Behavior"](https://blog.llvm.org/2011/05/what-every-c-programmer-should-know.html) — LLVM blog (3-part series)
   Explains why UB is *worse than "it just crashes"* — compilers exploit it. Use for: building the instinct that UB is a correctness problem, not a robustness one.
-- _A Little Book of C_ (local: `../a-little-book-of-c/a-little-book-of-c.pdf`)
+- _A Little Book of C_
   User's current primary text and the spine of their study. Confirm author/edition.
 
 ## Wisdom (Communities)
